@@ -270,7 +270,7 @@ void setup() {
   enableMotor();
 
   // Optional: home to encoder index on startup
-  // homeMotor();
+  homeMotor();
 }
 
 // =============================================================================
@@ -284,6 +284,7 @@ void loop() {
 //   moveToAngle(0.0,   0);   delay(5000);
 
   // Or: read a target angle from Serial
+  // homeMotor();
   if (Serial.available()) {
     double deg = Serial.parseFloat();
     moveToAngle(deg, 000);
