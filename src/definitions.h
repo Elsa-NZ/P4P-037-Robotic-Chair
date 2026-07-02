@@ -1,0 +1,11 @@
+#ifndef P4P_SRC_DEFINITIONS_H_
+#define P4P_SRC_DEFINITIONS_H_
+
+#define ENCODER_A_PIN 3
+#define ENCODER_B_PIN 2
+#define ENABLE_PIN 7
+#define DIRECTION_PIN 8
+#define PWM_PIN 9
+#define SPEED_PIN A1
+
+#endif // P4P_SRC_DEFINITIONS_H_
