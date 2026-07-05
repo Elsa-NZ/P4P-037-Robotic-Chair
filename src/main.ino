@@ -4,8 +4,10 @@
 #include "MotorEncoder.h"
 #include "CascadePosVelController.h"
 #include "ShaftEncoder.h"
+#include "BackdrivableController.h"
 
 CascadePosVelController controller;   
+BackdrivableController backdrivableController;
 
 void setup() {
   Serial.begin(115200);
@@ -23,7 +25,8 @@ void setup() {
 }
 
 void loop() {
-  float targetPosition = 0.0f;
+  // float targetPosition = 0.0f;
+  float targetError = 0; // 0 = no torque, full backdrivable
   float dt = 0.01f;
 
   Serial.print("Shaft Position: ");
@@ -31,11 +34,26 @@ void loop() {
 
   // run the controller update every 10 ms (defined by dt)
   if (millis() % 10 == 0) {
+    // HENRY"S CASCADE CONTROLLER:
+    // float power = controller.update(targetPosition, currentPosition, dt);
+
     float currentPosition = (pulses/(2000.0*51.0))*360.0; // Current position from encoder
+    float power = backdrivableController.update(targetError, currentPosition, dt);
+    Serial.println("Power: " + String(power));
+    float magneticEncoderValue = readShaftEncoderADC();
+    magneticEncoderValue -= homeADCValue; // Adjust for home position
+    float magneticEncoderAngle = magneticEncoderValue * MAGNETIC_ENCODER_RESOLUTION; // Convert to float for PID calculation
+
+    float error = currentPosition - magneticEncoderAngle; // Calculate the angle error for PID
+    Serial.println("Error: " + String(error));
+    
+    // error handling
+    if (isnan(power)) {
+      Serial.println("Error: Magnet not detected. Cannot compute power.");
+      return; // Exit the loop early if there's an error
+    }
 
     // Serial.println(currentPosition);
-
-    float power = controller.update(targetPosition, currentPosition, dt);
 
      if (power < 0) {
       digitalWrite(DIRECTION_PIN, HIGH); // CW
@@ -45,6 +63,6 @@ void loop() {
     }
 
     // Use the output to control the motor (set PWM value)
-    analogWrite(PWM_PIN, power);
+    // analogWrite(PWM_PIN, power);
   }
 }
