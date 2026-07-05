@@ -7,5 +7,6 @@
 #define DIRECTION_PIN 8
 #define PWM_PIN 9
 #define SPEED_PIN A1
+#define MAGNETIC_ENCODER_RESOLUTION 0.08789f //360f/(2f^12f)
 
 #endif // P4P_SRC_DEFINITIONS_H_
