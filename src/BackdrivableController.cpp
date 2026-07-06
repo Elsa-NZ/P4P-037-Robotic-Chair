@@ -1,12 +1,12 @@
 #include "BackdrivableController.h"
 #include "PID.h"
 #include "definitions.h"
-#include "ShaftEncoder.h"
-#include "MotorEncoder.h"
+// #include "ShaftEncoder.h"
+// #include "MotorEncoder.h"
 
 
 
-PID* positionPID = nullptr;
+PID* PIDController = nullptr;
 
 BackdrivableController::BackdrivableController() {
     // Initialize position PID gains
@@ -19,33 +19,26 @@ BackdrivableController::BackdrivableController() {
     saturationLow_pos = -400.0f; 
 
     // Create PID controllers for position and velocity
-    positionPID = new PID(kp_pos, ki_pos, kd_pos, windupLimit_pos, saturationHigh_pos, saturationLow_pos);
+    PIDController = new PID(kp_pos, ki_pos, kd_pos, windupLimit_pos, saturationHigh_pos, saturationLow_pos);
 }
 
 BackdrivableController::~BackdrivableController() {
-    delete positionPID;
+    delete PIDController;
 }
 
-float BackdrivableController::update(float targetError, float currentPosition, float dt) {
+float BackdrivableController::update(float targetError, float currentPosition, float dt, float magneticEncoderPosition) {
     // Update position PID controller
-    int magneticEncoderValue = readShaftEncoderADC(); // Read the current position from the shaft encoder
-    if (magneticEncoderValue == NAN) {
-        // Handle the case where the magnet is not detected
-        Serial.println("Magnet not detected! Cannot read position.");
-        return NAN; // Return NaN to indicate an error
-    }
-    magneticEncoderValue -= homeADCValue; // Adjust for home position
-    float magneticEncoderAngle = magneticEncoderValue * MAGNETIC_ENCODER_RESOLUTION; // Convert to float for PID calculation
+    
 
-    float error = currentPosition - magneticEncoderAngle; // Calculate the angle error for PID
+    float error = currentPosition - magneticEncoderPosition; // Calculate the angle error for PID
 
-    float positionOutput = positionPID->update(targetError, error, dt); // Note: +ve  turn CCW, -ve  turn CW (NEED TO CHECK PRIOR TESTING)
+    float positionOutput = PIDController->update(targetError, error, dt); // Note: +ve  turn CCW, -ve  turn CW (NEED TO CHECK PRIOR TESTING)
 
     // if (positionOutput != 0) {
     //     positionOutput += 25.5*(abs(positionOutput)/positionOutput);
     // }
 
-    Serial.println(positionOutput);
+    // Serial.println(positionOutput);
 
     // Store the final output for retrieval
     output = positionOutput;

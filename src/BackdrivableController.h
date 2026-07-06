@@ -7,7 +7,7 @@ class BackdrivableController {
 public:
     BackdrivableController();
     ~BackdrivableController();
-    float update(float targetPosition, float currentPosition, float dt);
+    float update(float targetPosition, float currentPosition, float dt, float magneticEncoderPosition);
     float getOutput();
 
 private:
