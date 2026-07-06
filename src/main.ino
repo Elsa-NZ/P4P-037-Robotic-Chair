@@ -89,7 +89,7 @@ void setup() {
 
 void loop() {
   // float targetPosition = 0.0f;
-  float targetError = 2; // 0 = no torque, full backdrivable
+  float targetError = 0; // 0 = no torque, full backdrivable
   float dt = 0.01f;
 
   // Serial.print("Shaft Position: ");
