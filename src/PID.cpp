@@ -36,7 +36,12 @@ float PID::update(float target, float current, float dt) {
     float integralTerm = ki * integral;
 
     // Derivative term
-    derivative = (error - lastError) / dt;
+    if (dt <= 0) {
+        derivative = 0; // Prevent division by zero
+    } else {
+        derivative = (error - lastError) / dt;
+    }
+    
     float derivativeTerm = kd * derivative;
 
     // Calculate output and apply saturation limits

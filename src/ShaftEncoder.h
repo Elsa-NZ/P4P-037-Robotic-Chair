@@ -6,7 +6,7 @@
 
 Adafruit_AS5600 as5600;
 
-void setupShaftEncoder() {
+void shaftEncoderSetup() {
   as5600.begin();
 
   as5600.enableWatchdog(false);

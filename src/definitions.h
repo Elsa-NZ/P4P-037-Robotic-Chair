@@ -8,4 +8,7 @@
 #define PWM_PIN 9
 #define SPEED_PIN A1
 
+#define SHAFT_HOME_POSITION 0.0f
+#define HOME_POSITION_TOLERANCE 0.0f
+
 #endif // P4P_SRC_DEFINITIONS_H_
