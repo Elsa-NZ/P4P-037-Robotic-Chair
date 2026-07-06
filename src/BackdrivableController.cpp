@@ -10,13 +10,13 @@ PID* PIDController = nullptr;
 
 BackdrivableController::BackdrivableController() {
     // Initialize position PID gains
-    kp_pos = 1.0f;
-    ki_pos = 0.0f; 
+    kp_pos = 30.0f;
+    ki_pos = 5.0f; 
     kd_pos = 0.0f; 
     // Initialize position PID windup and saturation limits
-    windupLimit_pos = 60.0f; 
-    saturationHigh_pos = 400.0f; 
-    saturationLow_pos = -400.0f; 
+    windupLimit_pos = 40.0f; 
+    saturationHigh_pos =  0.9*255; 
+    saturationLow_pos = 0.1*255; 
 
     // Create PID controllers for position and velocity
     PIDController = new PID(kp_pos, ki_pos, kd_pos, windupLimit_pos, saturationHigh_pos, saturationLow_pos);

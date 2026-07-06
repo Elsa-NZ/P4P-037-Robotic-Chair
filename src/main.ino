@@ -89,7 +89,7 @@ void setup() {
 
 void loop() {
   // float targetPosition = 0.0f;
-  float targetError = 0; // 0 = no torque, full backdrivable
+  float targetError = 2; // 0 = no torque, full backdrivable
   float dt = 0.01f;
 
   // Serial.print("Shaft Position: ");
@@ -118,36 +118,36 @@ void loop() {
     float currentPosition = (pulseCopy / (2000.0f * 51.0f)) * 360.0f;
 
     // float currentPosition = (pulses/(2000.0*51.0))*360.0; // Current position from encoder
-    // magneticEncoderValue -= homeADCValue; // Adjust for home position
-    // float magneticEncoderAngle = magneticEncoderValue * MAGNETIC_ENCODER_RESOLUTION; // Convert to float for PID calculation
+    magneticEncoderValue -= homeADCValue; // Adjust for home position
+    float magneticEncoderAngle = magneticEncoderValue * MAGNETIC_ENCODER_RESOLUTION; // Convert to float for PID calculation
 
     // Serial.print("Current Position: ");
-    Serial.println(currentPosition);
+    // Serial.println(currentPosition);
     // Serial.print("Magnetic Encoder Angle: ");
     // Serial.println(magneticEncoderAngle);
 
-    // float power = backdrivableController.update(targetError, currentPosition, dt, magneticEncoderAngle);
-    // // Serial.println("Power: " + String(power));
+    float power = backdrivableController.update(targetError, currentPosition, dt, magneticEncoderAngle);
+    // Serial.println("Power: " + String(power));
 
     // float error = currentPosition - magneticEncoderAngle; // Calculate the angle error for PID
-    // // Serial.println("Error: " + String(error));
+    // Serial.println("Error: " + String(error));
     
-    // // error handling
-    // if (isnan(power)) {
-    //   Serial.println("Error: Magnet not detected. Cannot compute power.");
-    //   return; // Exit the loop early if there's an error
-    // }
+    // error handling
+    if (isnan(power)) {
+      Serial.println("Error: Magnet not detected. Cannot compute power.");
+      return; // Exit the loop early if there's an error
+    }
 
     // // Serial.println(currentPosition);
 
-    //  if (power < 0) {
-    //   digitalWrite(DIRECTION_PIN, HIGH); // CW
-    //   power = abs(power);
-    // } else {
-    //   digitalWrite(DIRECTION_PIN, LOW); // CCW
-    // }
+     if (power < 0) {
+      digitalWrite(DIRECTION_PIN, HIGH); // CW
+      power = abs(power);
+    } else {
+      digitalWrite(DIRECTION_PIN, LOW); // CCW
+    }
 
     // Use the output to control the motor (set PWM value)
-    // analogWrite(PWM_PIN, power);
+    analogWrite(PWM_PIN, power);
   }
 }
