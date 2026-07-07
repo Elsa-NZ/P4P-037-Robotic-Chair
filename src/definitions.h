@@ -7,5 +7,9 @@
 #define DIRECTION_PIN 8
 #define PWM_PIN 9
 #define SPEED_PIN A1
+#define ENABLE_SWITCH_PIN 10
+#define DIP_SWITCH_PIN_0 11
+#define DIP_SWITCH_PIN_1 12
+#define DIP_SWITCH_PIN_2 13
 
 #endif // P4P_SRC_DEFINITIONS_H_
