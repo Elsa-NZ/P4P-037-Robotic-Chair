@@ -46,10 +46,14 @@ float PID::update(float target, float current, float dt) {
 
     // Calculate output and apply saturation limits
     output = proportionalTerm + integralTerm + derivativeTerm;
-    if (abs(output) > saturationHigh) {
-        output = saturationHigh*(output/abs(output));
-    } else if (abs(output) < saturationLow) {
-        output = saturationLow*(output/abs(output));
+    if (output > saturationHigh) {
+        output = saturationHigh;
+    } else if (output < saturationLow && output > 0) {
+        output = saturationLow;
+    } else if (output > -saturationLow && output < 0) {
+        output = -saturationLow;
+    } else if (output < -saturationHigh) {
+        output = -saturationHigh;
     }
 
     Serial.println(integralTerm);

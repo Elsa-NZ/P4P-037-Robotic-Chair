@@ -5,8 +5,10 @@
 #include "CascadePosVelController.h"
 #include "ShaftEncoder.h"
 #include "Motor.h"
+#include "BackdrivableController.h"
 
-CascadePosVelController controller;   
+CascadePosVelController controller;
+BackdriveableController backdrivableController; 
 
 void setup() {
   Serial.begin(115200);
@@ -29,9 +31,15 @@ void loop() {
   if (millis() % 10 == 0) {
     float currentPosition = (pulses/(2000.0*51.0))*360.0; // Current position from encoder
 
-    // Serial.println(currentPosition);
+    // Cascade controller
+    // float power = controller.update(targetPosition, currentPosition, dt); 
 
-    float power = controller.update(targetPosition, currentPosition, dt);
+    // Backdrivable controller
+    float magneticEncoderValue = readShaftEncoderADC() - SHAFT_HOME_POSITION; // Adjust for home position
+    float magneticEncoderAngle = magneticEncoderValue * MAGNETIC_ENCODER_RESOLUTION; // Convert to float for PID calculation
+
+    float targetError = 0.0;
+    float power = backdrivableController.update(targetError, currentPosition, dt, magneticEncoderAngle);
 
     move(power);
   }
