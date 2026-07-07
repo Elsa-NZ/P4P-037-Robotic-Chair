@@ -25,9 +25,6 @@ void loop() {
   float targetPosition = 0.0f;
   float dt = 0.01f;
 
-  Serial.print("Shaft Position: ");
-  Serial.println(readShaftEncoderADC());
-
   // run the controller update every 10 ms (defined by dt)
   if (millis() % 10 == 0) {
     float currentPosition = (pulses/(2000.0*51.0))*360.0; // Current position from encoder

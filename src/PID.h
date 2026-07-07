@@ -8,6 +8,7 @@ public:
     PID(float kp, float ki, float kd, float windupLimit, float saturationHigh, float saturationLow);
     float update(float target, float current, float dt);
     float getOutput();
+    void setSaturationLimits(float saturationHigh, float saturationLow);
 
 private:
     float kp, ki, kd;
