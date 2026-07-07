@@ -7,8 +7,8 @@
 #include "Motor.h"
 #include "BackdrivableController.h"
 
-CascadePosVelController controller;
-BackdriveableController backdrivableController; 
+// CascadePosVelController controller;
+BackdrivableController backdrivableController; 
 
 void setup() {
   Serial.begin(115200);
@@ -24,7 +24,7 @@ void setup() {
 }
 
 void loop() {
-  float targetPosition = 0.0f;
+  // float targetPosition = 0.0f;
   float dt = 0.01f;
 
   // run the controller update every 10 ms (defined by dt)
@@ -40,6 +40,13 @@ void loop() {
 
     float targetError = 0.0;
     float power = backdrivableController.update(targetError, currentPosition, dt, magneticEncoderAngle);
+
+    // Serial.print("Current Position: ");
+    // Serial.print(currentPosition);
+    // Serial.print(" | Magnetic Encoder: ");
+    // Serial.print(magneticEncoderAngle);
+    // Serial.print(" | Power: ");
+    // Serial.println(power);
 
     move(power);
   }
