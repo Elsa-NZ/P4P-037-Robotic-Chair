@@ -13,14 +13,16 @@ BackdrivableController backdrivableController;
 void setup() {
   Serial.begin(115200);
 
+  pinMode(ON_OFF_BUTTON, INPUT_PULLUP); // Set the button pin as input with pull-up resistor
+
   shaftEncoderSetup();
   motorEncoderSetup();
   motorSetup();
 
-  while (!homed) {
-    home();
-    delay(10);
-  }
+  // while (!homed) {
+  //   home();
+  //   delay(10);
+  // }
 }
 
 void loop() {
@@ -38,7 +40,7 @@ void loop() {
     float magneticEncoderValue = readShaftEncoderADC() - SHAFT_HOME_POSITION; // Adjust for home position
     float magneticEncoderAngle = magneticEncoderValue * MAGNETIC_ENCODER_RESOLUTION; // Convert to float for PID calculation
 
-    float targetError = 0.0;
+    float targetError = 0.5;
     float power = backdrivableController.update(targetError, currentPosition, dt, magneticEncoderAngle);
 
     // Serial.print("Current Position: ");
@@ -48,6 +50,10 @@ void loop() {
     // Serial.print(" | Power: ");
     // Serial.println(power);
 
-    move(power);
+    // move(power);
+
+    Serial.print("Button State: ");
+    Serial.println(digitalRead(ON_OFF_BUTTON));
+
   }
 }
