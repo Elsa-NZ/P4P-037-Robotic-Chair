@@ -1,10 +1,11 @@
-#ifndef READ_HARDWARE_STATE_H
-#define READ_HARDWARE_STATE_H
+#ifndef HARDWARE_FUNCTIONS_H
+#define HARDWARE_FUNCTIONS_H
 #include "definitions.h"
 #include <Arduino.h>
 
 void setupHardwareState();
 bool readEnableButton();
 int readSwitchDIP(); // 3 bit Switch
+void setLED(int pin);
 
-#endif  // READ_HARDWARE_STATE_H
+#endif  // HARDWARE_FUNCTIONS_H

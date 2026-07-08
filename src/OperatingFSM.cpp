@@ -1,6 +1,6 @@
 #include "OperatingFSM.h"
 #include "MainFSM.h"
-#include "ReadHardwareState.h"
+#include "HardwareFunctions.h"
 
 OperatingFSM::OperatingFSM() : currentState(IDLE), timeInState(0.0f) {}
 

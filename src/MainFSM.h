@@ -9,6 +9,7 @@ class MainFSM {
   State currentState;
   float timeInState;
   bool isHomed;
+  float motorPosition; // Store the current motor position
 
   bool outsideSafeRange();
 
@@ -19,7 +20,7 @@ class MainFSM {
 
  public:
   MainFSM();
-  void updateFSM();
+  void updateFSM(float motorPosition);
   void setState(State newState);
 };
 
