@@ -3,11 +3,11 @@
 
 #define ENCODER_A_PIN 3
 #define ENCODER_B_PIN 2
-#define ENABLE_PIN 7
+// #define ENABLE_PIN 7
 #define DIRECTION_PIN 4
 #define PWM_PIN 5
 #define SPEED_PIN A1
-#define ON_OFF_BUTTON 8
+// #define ON_OFF_BUTTON 8
 
 #define SHAFT_HOME_POSITION 1764.0f
 #define HOME_POSITION_TOLERANCE 5.0f

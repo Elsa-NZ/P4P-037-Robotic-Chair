@@ -1,7 +1,7 @@
 #include "Arduino.h"
 #include <Adafruit_AS5600.h>
 #include "definitions.h"
-#include "MotorEncoder.h"
+// #include "MotorEncoder.h"
 #include "CascadePosVelController.h"
 #include "ShaftEncoder.h"
 #include "HardwareFunctions.h"
@@ -20,18 +20,12 @@ BackdrivableController backdrivableController;
 
 void setup() {
   Serial.begin(115200);
-
-  setupShaftEncoder();
-  motorEncoderSetup();
   setupHardwareState();
-  pinMode(ON_OFF_BUTTON, INPUT_PULLUP); // Set the button pin as input with pull-up resistor
-
   shaftEncoderSetup();
   motorEncoderSetup();
   motorSetup();
 
-  digitalWrite(ENABLE_PIN, HIGH);
-  digitalWrite(DIRECTION_PIN, HIGH); // HIGH - CCW, LOW - CW
+  // digitalWrite(DIRECTION_PIN, HIGH); // HIGH - CCW, LOW - CW
 
   setLED(IDLE_LED_PIN);
   // while (!homed) {
@@ -52,6 +46,8 @@ void loop() {
     float motorPosition = (pulses/(2000.0*51.0))*360.0; // Current position from encoder
     // Serial.print("Motor Position: ");
     // Serial.println(motorPosition);
+    // Serial.print("Shaft Position: ");
+    // Serial.println(readShaftEncoderADC());
 
     mainFSM.updateFSM(motorPosition);
     // operatingFSM.updateFSM();
@@ -73,11 +69,11 @@ void loop() {
     // float power = controller.update(targetPosition, currentPosition, dt); 
 
     // Backdrivable controller
-    float magneticEncoderValue = readShaftEncoderADC() - SHAFT_HOME_POSITION; // Adjust for home position
-    float magneticEncoderAngle = magneticEncoderValue * MAGNETIC_ENCODER_RESOLUTION; // Convert to float for PID calculation
+    // float magneticEncoderValue = readShaftEncoderADC() - SHAFT_HOME_POSITION; // Adjust for home position
+    // float magneticEncoderAngle = magneticEncoderValue * MAGNETIC_ENCODER_RESOLUTION; // Convert to float for PID calculation
 
-    float targetError = 0.5;
-    float power = backdrivableController.update(targetError, currentPosition, dt, magneticEncoderAngle);
+    // float targetError = 0.5;
+    // float power = backdrivableController.update(targetError, currentPosition, dt, magneticEncoderAngle);
 
     // Serial.print("Current Position: ");
     // Serial.print(currentPosition);
@@ -88,8 +84,8 @@ void loop() {
 
     // move(power);
 
-    Serial.print("Button State: ");
-    Serial.println(digitalRead(ON_OFF_BUTTON));
+    // Serial.print("Button State: ");
+    // Serial.println(digitalRead(ON_OFF_BUTTON));
 
   }
 }

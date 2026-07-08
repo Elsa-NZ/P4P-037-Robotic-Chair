@@ -3,6 +3,7 @@
 #include "HardwareFunctions.h"
 #include "OperatingFSM.h"
 #include "definitions.h"
+#include "Motor.h"
 
 extern OperatingFSM operatingFSM; // Declare the external instance of OperatingFSM
 
@@ -10,18 +11,17 @@ MainFSM::MainFSM() : currentState(IDLE), timeInState(0.0f) { }
 
 void MainFSM::updateFSM(float motorPosition) {
     this->motorPosition = motorPosition; // Update the current motor position
-    Serial.print("State: ");
-    Serial.println(currentState);
+    // Serial.print("State: ");
+    // Serial.println(currentState);
   switch (currentState) {
     case IDLE:
       idle();
       // Transitions
-      if (outsideSafeRange()) {
+      if (outsideSafeRange() && (isHomed == true)) {
         setState(ERROR);
         setLED(ERROR_LED_PIN); // Turn on error LED
       } else if (readEnableButton() && (isHomed == false)) {
         setState(HOMING);
-        setLED(HOMING_LED_PIN); // Turn on homing LED
       } else if (readEnableButton() && (isHomed == true)) {
         setState(OPERATING);
         setLED(OPERATING_LED_PIN); // Turn on operating LED
@@ -82,8 +82,12 @@ void MainFSM::operating() {
 
 void MainFSM::homing() {
   // In the HOMING state, we can implement the homing logic
+  while (!homed) {
+    home();
+    delay(10);
+  }
   isHomed = true; // Set to true to simulate homing completion
-  delay(3000); // Simulate some time taken for homing
+  setLED(HOMING_LED_PIN); // Turn on homing LED
 }
 
 void MainFSM::error() {

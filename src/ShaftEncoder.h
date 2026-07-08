@@ -6,7 +6,7 @@
 
 extern Adafruit_AS5600 as5600;
 
-void setupShaftEncoder();
+void shaftEncoderSetup();
 float readShaftEncoderADC();
 
 #endif  // P4P_SRC_SHAFT_ENCODER_H_
