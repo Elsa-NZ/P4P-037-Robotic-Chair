@@ -29,25 +29,34 @@ float PID::update(float target, float current, float dt) {
         integral = -windupLimit;
     }
 
-    if (abs(error) < 0.1) {
+    if ((error/lastError) < 0) { // Reset integral if change in error sign is detected
      integral = 0;   
     }
 
     float integralTerm = ki * integral;
 
     // Derivative term
-    derivative = (error - lastError) / dt;
+    if (dt <= 0) {
+        derivative = 0; // Prevent division by zero
+    } else {
+        derivative = (error - lastError) / dt;
+    }
+
     float derivativeTerm = kd * derivative;
 
     // Calculate output and apply saturation limits
     output = proportionalTerm + integralTerm + derivativeTerm;
-    if (abs(output) > saturationHigh) {
-        output = saturationHigh*(output/abs(output));
-    } else if (abs(output) < saturationLow) {
-        output = saturationLow*(output/abs(output));
+    if (output > saturationHigh) {
+        output = saturationHigh;
+    } else if (output < saturationLow && output > 0) {
+        output = saturationLow;
+    } else if (output > -saturationLow && output < 0) {
+        output = -saturationLow;
+    } else if (output < -saturationHigh) {
+        output = -saturationHigh;
     }
 
-    // Serial.println(output);
+    // Serial.println(integralTerm);
 
     lastError = error;
     return output;
@@ -55,4 +64,9 @@ float PID::update(float target, float current, float dt) {
 
 float PID::getOutput() {
     return output;
+}
+
+void PID::setSaturationLimits(float saturationHigh, float saturationLow) {
+    this->saturationHigh = saturationHigh;
+    this->saturationLow = saturationLow;
 }

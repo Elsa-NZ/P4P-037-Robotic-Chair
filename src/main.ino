@@ -12,6 +12,11 @@ CascadePosVelController controller;
 MainFSM mainFSM;
 OperatingFSM operatingFSM;
 
+#include "Motor.h"
+#include "BackdrivableController.h"
+
+// CascadePosVelController controller;
+BackdrivableController backdrivableController; 
 
 void setup() {
   Serial.begin(115200);
@@ -19,20 +24,24 @@ void setup() {
   setupShaftEncoder();
   motorEncoderSetup();
   setupHardwareState();
+  pinMode(ON_OFF_BUTTON, INPUT_PULLUP); // Set the button pin as input with pull-up resistor
 
-  pinMode(ENABLE_PIN, OUTPUT); // ENABLE
-  pinMode(DIRECTION_PIN, OUTPUT); // DIRECTION
-  pinMode(PWM_PIN, OUTPUT); // PWM
-  pinMode(SPEED_PIN, INPUT); // SPEED
+  shaftEncoderSetup();
+  motorEncoderSetup();
+  motorSetup();
 
   digitalWrite(ENABLE_PIN, HIGH);
   digitalWrite(DIRECTION_PIN, HIGH); // HIGH - CCW, LOW - CW
 
   setLED(IDLE_LED_PIN);
+  // while (!homed) {
+  //   home();
+  //   delay(10);
+  // }
 }
 
 void loop() {
-  float targetPosition = 0.0f;
+  // float targetPosition = 0.0f;
   float dt = 0.01f;
 
   // Serial.print("Shaft Position: ");
@@ -60,5 +69,27 @@ void loop() {
 
     // // Use the output to control the motor (set PWM value)
     // analogWrite(PWM_PIN, power);
+    // Cascade controller
+    // float power = controller.update(targetPosition, currentPosition, dt); 
+
+    // Backdrivable controller
+    float magneticEncoderValue = readShaftEncoderADC() - SHAFT_HOME_POSITION; // Adjust for home position
+    float magneticEncoderAngle = magneticEncoderValue * MAGNETIC_ENCODER_RESOLUTION; // Convert to float for PID calculation
+
+    float targetError = 0.5;
+    float power = backdrivableController.update(targetError, currentPosition, dt, magneticEncoderAngle);
+
+    // Serial.print("Current Position: ");
+    // Serial.print(currentPosition);
+    // Serial.print(" | Magnetic Encoder: ");
+    // Serial.print(magneticEncoderAngle);
+    // Serial.print(" | Power: ");
+    // Serial.println(power);
+
+    // move(power);
+
+    Serial.print("Button State: ");
+    Serial.println(digitalRead(ON_OFF_BUTTON));
+
   }
 }
