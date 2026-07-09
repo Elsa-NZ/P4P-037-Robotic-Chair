@@ -22,7 +22,7 @@ void MainFSM::updateFSM(float motorPosition) {
         setLED(ERROR_LED_PIN); // Turn on error LED
       } else if (readEnableButton() && (isHomed == false)) {
         setState(HOMING);
-      } else if (readEnableButton() && (isHomed == true)) {
+      } else if (readEnableButton() && (isHomed == true) && (readSwitchDIP() == 0b000)) {
         setState(OPERATING);
         setLED(OPERATING_LED_PIN); // Turn on operating LED
       }
