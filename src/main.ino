@@ -1,8 +1,8 @@
 // TEST SCRIPT FOR MEASURING FORCES AT SPECIFIED ANGLES
 
-// Angles from -25 to 45 degrees
-float angles[] = {-25.0, -20.0, -15.0, -10.0, -5.0, 0.0,  5.0, 10.0,
-                  15.0,  20.0,  25.0,  30.0,  35.0, 40.0, 45.0};
+// Angles from -45 to 25 degrees
+float angles[] = {-45.0, -40.0, -35.0, -30.0, -25.0, -20.0,  -15.0, -10.0,
+                  -5.0,  0.0,  5.0,  10.0,  15.0, 20.0, 25.0};
 int numAngles = sizeof(angles) / sizeof(angles[0]);
 
 #include <Adafruit_AS5600.h>
@@ -62,6 +62,7 @@ void loop() {
       // INSERT CONTROLLER HERE //
 
       // float power = controller.update(targetPosition, motorPosition, dt);
+      float power = backdrivableController.update(0, motorPosition, dt, (readShaftEncoderADC()-SHAFT_HOME_POSITION)*MAGNETIC_ENCODER_RESOLUTION);
 
       ////////////////////////////////////////////
 
@@ -72,8 +73,14 @@ void loop() {
       //   digitalWrite(DIRECTION_PIN, LOW);  // CCW
       // }
 
-      // // Use the output to control the motor (set PWM value)
-      // move(power);
+      // Use the output to control the motor (set PWM value)
+      move(power);
+
+      if (motorPosition < SAFE_MIN || motorPosition > SAFE_MAX) {
+        digitalWrite(ERROR_LED_PIN, HIGH);  // Turn on LED when out of safe range
+      } else {
+        digitalWrite(ERROR_LED_PIN, LOW);  // Turn off LED when in safe range
+      }
 
       if (findInArrayWithTolerance(angles, numAngles, motorPosition, 0.1f)) {
         digitalWrite(IDLE_LED_PIN, HIGH);  // Turn on LED when target angle reached

@@ -5,6 +5,9 @@ bool homed = false;
 bool homingStarted = false;
 
 void motorSetup() {
+  pinMode(ENABLE_PIN, OUTPUT); // ENABLE
+  digitalWrite(ENABLE_PIN, HIGH); // Enable motor driver
+
   pinMode(DIRECTION_PIN, OUTPUT); // DIRECTION
   pinMode(PWM_PIN, OUTPUT); // PWM
   pinMode(SPEED_PIN, INPUT); // SPEED
@@ -48,7 +51,7 @@ int home() {
   float error = SHAFT_HOME_POSITION - position;
 
   // map angular error to pwm range to saturate power
-  homingPID.setSaturationLimits(6.86103198783*log(abs(error))+20.9575950004, 0.1*255); // Set saturation limits for homing PID
+  homingPID.setSaturationLimits(11.2889365705*log(abs(error))+17.5978355576, 0.1*255); // Set saturation limits for homing PID for range of error values 3-950 and pwm 31-90
 
   float speed = 1.8310546875*analogRead(SPEED_PIN)-740; //(1.8310546875*measuredVelocity)-740)
 
