@@ -11,6 +11,7 @@ PID::PID(float kp, float ki, float kd, float windupLimit, float saturationHigh, 
     this->derivative = 0.0f;
     this->lastError = 0.0f;
     this->output = 0.0f;
+    this->resetIntegralOnErrorSignChange = resetIntegralOnErrorSignChange;
 }
 
 float PID::update(float target, float current, float dt) {

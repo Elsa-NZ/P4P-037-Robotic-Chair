@@ -49,9 +49,10 @@ void loop() {
   float output = 0.0f;
   float error = 0.0f;
 
-  //2d array of 200 elements to store power and error values for analysis
+  //2d array of 100 elements to store power and error values for analysis
   float powerArray[100][2];  // [0] for power, [1] for error
   int i = 0;
+  bool exportData = false;  // Flag to indicate if data has been exported
 
   move(0);  // Ensure motor is stopped before starting the test
   while (readSwitchDIP() == 0b001 || readSwitchDIP() == 0b011) {  // begin testing when a DIP switch is turned on
@@ -66,7 +67,7 @@ void loop() {
         powerArray[i][1] = error;  // store error in array
 
         i++;
-    } else if (i == 100) {  // print power and error values when DIP switch is turned to 0b010
+    } else if (i == 100 && !exportData) {  // print power and error values when DIP switch is turned to 0b010
         // Serial.begin(115200);
         // delay(100);  // Allow time for Serial to initialize
         for (int j = 0; j < i; j++) {
@@ -74,7 +75,7 @@ void loop() {
           Serial.print(", ");
           Serial.println(powerArray[j][0]);
         }
-        i = 0;  // reset index for next test
+        exportData = true;  // set export flag to true to indicate data has been exported
     }
 
     // run the controller & FSM update every 10 ms (defined by dt)
@@ -82,7 +83,7 @@ void loop() {
       float motorPosition = (pulses / (2000.0 * 51.0)) * 360.0;  // Current position from encoder
 
       // float power = controller.update(targetPosition, motorPosition, dt);
-      float power = backdrivableController.update(1, motorPosition, dt, (readShaftEncoderADC()-SHAFT_HOME_POSITION)*MAGNETIC_ENCODER_RESOLUTION);
+      float power = backdrivableController.update(2, motorPosition, dt, (readShaftEncoderADC()-SHAFT_HOME_POSITION)*MAGNETIC_ENCODER_RESOLUTION);
 
       // Use the output to control the motor (set PWM value)
       move(power);
