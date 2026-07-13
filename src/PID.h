@@ -5,7 +5,7 @@
 
 class PID {
 public:
-    PID(float kp, float ki, float kd, float windupLimit, float saturationHigh, float saturationLow);
+    PID(float kp, float ki, float kd, float windupLimit, float saturationHigh, float saturationLow, bool resetIntegralOnErrorSignChange = true);
     float update(float target, float current, float dt);
     float getOutput();
     void setSaturationLimits(float saturationHigh, float saturationLow);
@@ -17,6 +17,7 @@ private:
     float integral, derivative;
     float lastError;
     float output;
+    bool resetIntegralOnErrorSignChange;
 };
 
 #endif  // P4P_SRC_PID_H_

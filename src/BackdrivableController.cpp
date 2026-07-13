@@ -19,7 +19,7 @@ BackdrivableController::BackdrivableController() {
     saturationLow_pos = 0.1*255; 
 
     // Create PID controllers for position and velocity
-    PIDController = new PID(kp_pos, ki_pos, kd_pos, windupLimit_pos, saturationHigh_pos, saturationLow_pos);
+    PIDController = new PID(kp_pos, ki_pos, kd_pos, windupLimit_pos, saturationHigh_pos, saturationLow_pos, 0);
 }
 
 BackdrivableController::~BackdrivableController() {
@@ -30,9 +30,15 @@ float BackdrivableController::update(float targetError, float currentPosition, f
     // Update position PID controller
     
 
-    float error = currentPosition - magneticEncoderPosition; // Calculate the angle error for PID
+    error = currentPosition - magneticEncoderPosition; // Calculate the angle error for PID
+
+    if (abs(error) < 0.5 && targetError == 0) { // degrees
+        error = 0; 
+    }
 
     float positionOutput = PIDController->update(targetError, error, dt); // Note: +ve  turn CCW, -ve  turn CW (NEED TO CHECK PRIOR TESTING)
+
+    float feedforward = targetError/DEGREES_PER_AMP; // Feedforward term to assist in reaching target position (value from testing)
 
     // if (positionOutput != 0) {
     //     positionOutput += 25.5*(abs(positionOutput)/positionOutput);
@@ -41,11 +47,15 @@ float BackdrivableController::update(float targetError, float currentPosition, f
     // Serial.println(positionOutput);
 
     // Store the final output for retrieval
-    output = positionOutput;
+    output = positionOutput - feedforward;
 
     return output;
 }
 
 float BackdrivableController::getOutput() {
     return output;
+}
+
+float BackdrivableController::getError() {
+    return error;
 }

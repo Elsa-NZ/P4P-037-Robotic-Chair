@@ -25,8 +25,8 @@ CascadePosVelController::CascadePosVelController() {
     saturationLow_vel = 0.1*255; 
 
     // Create PID controllers for position and velocity
-    positionPID = new PID(kp_pos, ki_pos, kd_pos, windupLimit_pos, saturationHigh_pos, saturationLow_pos);
-    velocityPID = new PID(kp_vel, ki_vel, kd_vel, windupLimit_vel, saturationHigh_vel, saturationLow_vel);
+    positionPID = new PID(kp_pos, ki_pos, kd_pos, windupLimit_pos, saturationHigh_pos, saturationLow_pos, 1);
+    velocityPID = new PID(kp_vel, ki_vel, kd_vel, windupLimit_vel, saturationHigh_vel, saturationLow_vel, 1);
 }
 
 CascadePosVelController::~CascadePosVelController() {

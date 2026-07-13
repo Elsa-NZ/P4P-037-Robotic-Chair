@@ -9,11 +9,13 @@ public:
     ~BackdrivableController();
     float update(float targetPosition, float currentPosition, float dt, float magneticEncoderPosition);
     float getOutput();
+    float getError();
 
 private:
     float kp_pos, ki_pos, kd_pos;
     float windupLimit_pos, saturationHigh_pos, saturationLow_pos;
     float output;
+    float error;
 };
 
 #endif  // P4P_SRC_BACKDRIVABLECONTROLLER_H_

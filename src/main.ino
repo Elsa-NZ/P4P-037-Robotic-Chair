@@ -42,36 +42,47 @@ void setup() {
 }
 
 void loop() {
-  float targetPosition = 0.0f;
+  // pinMode(7, OUTPUT);  // Set pin 7 as output for LED indicator
+  // float targetPosition = 0.0f;
   float dt = 0.01f;
-  while (readSwitchDIP() !=
-         0b000) {  // begin testing when a DIP switch is turned on
+
+  float output = 0.0f;
+  float error = 0.0f;
+
+  //2d array of 200 elements to store power and error values for analysis
+  float powerArray[100][2];  // [0] for power, [1] for error
+  int i = 0;
+
+  move(0);  // Ensure motor is stopped before starting the test
+  while (readSwitchDIP() == 0b001 || readSwitchDIP() == 0b011) {  // begin testing when a DIP switch is turned on
 
     // Serial.print("Shaft Position: ");
     // Serial.println(readShaftEncoderADC());
 
+    if (readSwitchDIP() == 0b011 && millis() % 100 == 0 && i < 100) {  // store power and error every 100 ms for analysis
+        error = backdrivableController.getError();
+        output = backdrivableController.getOutput();
+        powerArray[i][0] = output;  // store output in array
+        powerArray[i][1] = error;  // store error in array
+
+        i++;
+    } else if (i == 100) {  // print power and error values when DIP switch is turned to 0b010
+        // Serial.begin(115200);
+        // delay(100);  // Allow time for Serial to initialize
+        for (int j = 0; j < i; j++) {
+          Serial.print(powerArray[j][1]);
+          Serial.print(", ");
+          Serial.println(powerArray[j][0]);
+        }
+        i = 0;  // reset index for next test
+    }
+
     // run the controller & FSM update every 10 ms (defined by dt)
     if (millis() % 10 == 0) {
-      float motorPosition =
-          (pulses / (2000.0 * 51.0)) * 360.0;  // Current position from encoder
-      // Serial.print("Motor Position: ");
-      // Serial.println(motorPosition);
-      // Serial.print("Shaft Position: ");
-      // Serial.println(readShaftEncoderADC());
-
-      // INSERT CONTROLLER HERE //
+      float motorPosition = (pulses / (2000.0 * 51.0)) * 360.0;  // Current position from encoder
 
       // float power = controller.update(targetPosition, motorPosition, dt);
-      float power = backdrivableController.update(0, motorPosition, dt, (readShaftEncoderADC()-SHAFT_HOME_POSITION)*MAGNETIC_ENCODER_RESOLUTION);
-
-      ////////////////////////////////////////////
-
-      // if (power < 0) {
-      //   digitalWrite(DIRECTION_PIN, HIGH);  // CW
-      //   power = abs(power);
-      // } else {
-      //   digitalWrite(DIRECTION_PIN, LOW);  // CCW
-      // }
+      float power = backdrivableController.update(1, motorPosition, dt, (readShaftEncoderADC()-SHAFT_HOME_POSITION)*MAGNETIC_ENCODER_RESOLUTION);
 
       // Use the output to control the motor (set PWM value)
       move(power);
@@ -82,11 +93,11 @@ void loop() {
         digitalWrite(ERROR_LED_PIN, LOW);  // Turn off LED when in safe range
       }
 
-      if (findInArrayWithTolerance(angles, numAngles, motorPosition, 0.1f)) {
-        digitalWrite(IDLE_LED_PIN, HIGH);  // Turn on LED when target angle reached
-      } else {
-        digitalWrite(IDLE_LED_PIN, LOW);  // Turn off LED when not at target angle
-      }
+      // if (findInArrayWithTolerance(angles, numAngles, motorPosition, 0.1f)) {
+      //   digitalWrite(7, HIGH);  // Turn on LED when target angle reached
+      // } else {
+      //   digitalWrite(7, LOW);  // Turn off LED when not at target angle
+      // }
     }
   }
 }

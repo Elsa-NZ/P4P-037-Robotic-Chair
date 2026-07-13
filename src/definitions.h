@@ -25,4 +25,6 @@
 #define SAFE_MIN -45.0f // Minimum safe position in degrees
 #define SAFE_MAX 25.0f  // Maximum safe position in degrees
 
+#define DEGREES_PER_AMP 8.19647
+
 #endif // P4P_SRC_DEFINITIONS_H_

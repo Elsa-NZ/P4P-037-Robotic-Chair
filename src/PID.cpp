@@ -1,6 +1,6 @@
 #include "PID.h"
 
-PID::PID(float kp, float ki, float kd, float windupLimit, float saturationHigh, float saturationLow) {
+PID::PID(float kp, float ki, float kd, float windupLimit, float saturationHigh, float saturationLow, bool resetIntegralOnErrorSignChange) {
     this->kp = kp;
     this->ki = ki;
     this->kd = kd;
@@ -29,8 +29,8 @@ float PID::update(float target, float current, float dt) {
         integral = -windupLimit;
     }
 
-    if ((error/lastError) < 0) { // Reset integral if change in error sign is detected
-     integral = 0;   
+    if (resetIntegralOnErrorSignChange && ((error * lastError) < 0)) { // Reset integral if change in error sign is detected
+        integral = 0;
     }
 
     float integralTerm = ki * integral;

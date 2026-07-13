@@ -20,7 +20,7 @@ void motorSetup() {
 }
 
 void move(float power) {
-    if (isnan(power)) {
+    if (isnan(power) || abs(power) < 0.1*255) { // If power is NaN or below threshold, set to minimum PWM value
         power = 0.1*255; // Set a minimum PWM value to prevent controller error
     } else if (power < 0) {
       digitalWrite(DIRECTION_PIN, HIGH); // CW
