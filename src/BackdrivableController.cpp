@@ -52,6 +52,13 @@ float BackdrivableController::update(float targetError, float currentPosition, f
     return output;
 }
 
+int BackdrivableController::calibrate() {
+    // 1. Move to a +25 deg position
+    // 2. Read the shaft encoder and magnetic encoder values
+    // 3. Repeat in 5 degree increments until -45 deg is reached
+    // 4. Determine the 
+}
+
 float BackdrivableController::getOutput() {
     return output;
 }

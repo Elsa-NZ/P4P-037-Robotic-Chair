@@ -17,21 +17,27 @@ PID::PID(float kp, float ki, float kd, float windupLimit, float saturationHigh, 
 float PID::update(float target, float current, float dt) {
     float error = target - current;
 
-    // Serial.println(error);
+    Serial.println(error);
 
     // Proportional term
     float proportionalTerm = kp * error;
 
+    // Reset the integral when the error crosses zero, including through an exact zero sample.
+    bool errorCrossedZero = (error > 0.0f && lastError <= 0.0f) || (error < 0.0f && lastError >= 0.0f);
+    if (resetIntegralOnErrorSignChange && errorCrossedZero) {
+        integral = 0.0f;
+        // Serial.println("Integral reset due to error sign change");
+    }
+
     // Integral term with windup protection
+    // Serial.println("Integral before update: " + String(integral));
     integral += error * dt;
+    // Serial.println("Integral after update: " + String(integral));
+    // Serial.println("dt: " + String(dt));
     if (integral > windupLimit) {
         integral = windupLimit;
     } else if (integral < -windupLimit) {
         integral = -windupLimit;
-    }
-
-    if (resetIntegralOnErrorSignChange && ((error * lastError) < 0)) { // Reset integral if change in error sign is detected
-        integral = 0;
     }
 
     float integralTerm = ki * integral;
@@ -56,8 +62,6 @@ float PID::update(float target, float current, float dt) {
     } else if (output < -saturationHigh) {
         output = -saturationHigh;
     }
-
-    // Serial.println(integralTerm);
 
     lastError = error;
     return output;
