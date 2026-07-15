@@ -9,6 +9,7 @@
 
 extern bool homed;
 extern bool homingStarted;
+extern int zeroShaftPosition; // Store calibrated zero/home shaft position
 
 void motorSetup();
 void move(float power);

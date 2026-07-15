@@ -27,4 +27,6 @@
 
 #define DEGREES_PER_AMP 8.19647
 
+// add global variable for zero shaft postion
+
 #endif // P4P_SRC_DEFINITIONS_H_

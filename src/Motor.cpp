@@ -3,6 +3,7 @@
 // Global variable definitions
 bool homed = false;
 bool homingStarted = false;
+int zeroShaftPosition = 0; // Store calibrated zero/home shaft position
 
 void motorSetup() {
   pinMode(ENABLE_PIN, OUTPUT); // ENABLE
@@ -37,8 +38,8 @@ void move(float power) {
 }
 
 
-PID homingPID(0.7, 0.22, 0.1, 300, 0.27*255, 0.1*255, 1); // homingPID(kp, ki, kd, integral_windup, pwm_max, pwm_min
-int previousMillis = 0;
+PID homingPID(0.055, 0.095, 0.01, 400, 0.27*255, 0.1*255, 1); // homingPID(kp, ki, kd, integral_windup, pwm_max, pwm_min
+unsigned long previousMillis = 0;
 
 int home() {
   if (!homingStarted) {
@@ -48,10 +49,8 @@ int home() {
 
   int position = readShaftEncoderADC();
 
-  float error = SHAFT_HOME_POSITION - position;
-
   // map angular error to pwm range to saturate power
-  homingPID.setSaturationLimits(11.2889365705*log(abs(error))+17.5978355576, 0.1*255); // Set saturation limits for homing PID for range of error values 3-950 and pwm 31-90
+  // homingPID.setSaturationLimits(11.2889365705*log(abs(error))+17.5978355576, 0.1*255); // Set saturation limits for homing PID for range of error values 3-950 and pwm 31-90
 
   float speed = 1.8310546875*analogRead(SPEED_PIN)-740; //(1.8310546875*measuredVelocity)-740)
 
@@ -59,7 +58,9 @@ int home() {
     homed = true;
     homingStarted = false;
     analogWrite(PWM_PIN, 0.1*255);
+    delay(1000); // Allow time for motor to settle
     pulses = 0; // Reset encoder pulses to zero at home position
+    zeroShaftPosition = position; // Store the zero shaft position
     return 1; // Already at home position
   }
 

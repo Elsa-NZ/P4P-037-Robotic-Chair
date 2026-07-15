@@ -8,6 +8,7 @@ public:
     BackdrivableController();
     ~BackdrivableController();
     float update(float targetPosition, float currentPosition, float dt, float magneticEncoderPosition);
+    int calibrate();
     float getOutput();
     float getError();
 

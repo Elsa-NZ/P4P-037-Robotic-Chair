@@ -42,7 +42,7 @@ void setup() {
 }
 
 void loop() {
-  // pinMode(7, OUTPUT);  // Set pin 7 as output for LED indicator
+  pinMode(7, OUTPUT);  // Set pin 7 as output for LED indicator
   // float targetPosition = 0.0f;
   float dt = 0.01f;
 
@@ -55,12 +55,12 @@ void loop() {
   bool exportData = false;  // Flag to indicate if data has been exported
 
   move(0);  // Ensure motor is stopped before starting the test
-  while (readSwitchDIP() == 0b001 || readSwitchDIP() == 0b011) {  // begin testing when a DIP switch is turned on
+  while (readSwitchDIP() == 0b001 || readSwitchDIP() == 0b011 || readSwitchDIP() == 0b101) {  // begin testing when a DIP switch is turned on
 
     // Serial.print("Shaft Position: ");
     // Serial.println(readShaftEncoderADC());
 
-    if (readSwitchDIP() == 0b011 && millis() % 100 == 0 && i < 100) {  // store power and error every 100 ms for analysis
+    if (readSwitchDIP() == 0b011 && millis() % 300 == 0 && i < 100) {  // store power and error every 100 ms for analysis
         error = backdrivableController.getError();
         output = backdrivableController.getOutput();
         powerArray[i][0] = output;  // store output in array
@@ -81,9 +81,10 @@ void loop() {
     // run the controller & FSM update every 10 ms (defined by dt)
     if (millis() % 10 == 0) {
       float motorPosition = (pulses / (2000.0 * 51.0)) * 360.0;  // Current position from encoder
+      Serial.println(motorPosition);
 
       // float power = controller.update(targetPosition, motorPosition, dt);
-      float power = backdrivableController.update(2, motorPosition, dt, (readShaftEncoderADC()-SHAFT_HOME_POSITION)*MAGNETIC_ENCODER_RESOLUTION);
+      float power = backdrivableController.update(4, motorPosition, dt, (readShaftEncoderADC()-zeroShaftPosition)*MAGNETIC_ENCODER_RESOLUTION);
 
       // Use the output to control the motor (set PWM value)
       move(power);
@@ -94,11 +95,11 @@ void loop() {
         digitalWrite(ERROR_LED_PIN, LOW);  // Turn off LED when in safe range
       }
 
-      // if (findInArrayWithTolerance(angles, numAngles, motorPosition, 0.1f)) {
-      //   digitalWrite(7, HIGH);  // Turn on LED when target angle reached
-      // } else {
-      //   digitalWrite(7, LOW);  // Turn off LED when not at target angle
-      // }
+      if (findInArrayWithTolerance(angles, numAngles, motorPosition, 0.1f)) {
+        digitalWrite(7, HIGH);  // Turn on LED when target angle reached
+      } else {
+        digitalWrite(7, LOW);  // Turn off LED when not at target angle
+      }
     }
   }
 }
