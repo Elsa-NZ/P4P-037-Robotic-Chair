@@ -27,6 +27,10 @@
 
 #define DEGREES_PER_AMP 8.19647
 
+#define BAR_WEIGHT_IN_NEWTON 9.088965
+#define BAR_CENTROID 0.22 // in meters
+#define SPRING_CONSTANT 1 // in Nm/deg
+
 // add global variable for zero shaft postion
 
 #endif // P4P_SRC_DEFINITIONS_H_

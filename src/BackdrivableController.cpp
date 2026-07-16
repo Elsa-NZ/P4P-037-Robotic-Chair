@@ -32,13 +32,17 @@ float BackdrivableController::update(float targetError, float currentPosition, f
 
     error = currentPosition - magneticEncoderPosition; // Calculate the angle error for PID
 
-    if (abs(error) < 0.5 && targetError == 0) { // degrees
-        error = 0; 
-    }
+    float torqueFromChair = BAR_WEIGHT_IN_NEWTON * sin(magneticEncoderPosition * (PI / 180.0f)) * BAR_CENTROID; // Calculate torque from the bar weight based on current position
+    float torqueRequired = SPRING_CONSTANT * targetError; // Calculate required torque to achieve target position
+    float requiredDisplacement = (torqueRequired - torqueFromChair * (magneticEncoderPosition/abs(magneticEncoderPosition)))/SPRING_CONSTANT; // Calculate the required displacement to achieve the target position
 
-    float positionOutput = PIDController->update(targetError, error, dt); // Note: +ve  turn CCW, -ve  turn CW (NEED TO CHECK PRIOR TESTING)
+    // if (abs(error) < 0.5 && targetError == 0) { // degrees
+    //     error = 0; 
+    // }
 
-    float feedforward = targetError/DEGREES_PER_AMP; // Feedforward term to assist in reaching target position (value from testing)
+    float positionOutput = PIDController->update(requiredDisplacement, error, dt); // Note: +ve  turn CCW, -ve  turn CW (NEED TO CHECK PRIOR TESTING)
+
+    // float feedforward = targetError/DEGREES_PER_AMP; // Feedforward term to assist in reaching target position (value from testing)
 
     // if (positionOutput != 0) {
     //     positionOutput += 25.5*(abs(positionOutput)/positionOutput);
@@ -47,7 +51,8 @@ float BackdrivableController::update(float targetError, float currentPosition, f
     // Serial.println(positionOutput);
 
     // Store the final output for retrieval
-    output = positionOutput - feedforward;
+    // output = positionOutput - feedforward;
+    output = positionOutput;
 
     return output;
 }
