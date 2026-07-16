@@ -1,10 +1,4 @@
 // TEST SCRIPT FOR MEASURING FORCES AT SPECIFIED ANGLES
-
-// Angles from -45 to 25 degrees
-float angles[] = {-45.0, -40.0, -35.0, -30.0, -25.0, -20.0,  -15.0, -10.0,
-                  -5.0,  0.0,  5.0,  10.0,  15.0, 20.0, 25.0};
-int numAngles = sizeof(angles) / sizeof(angles[0]);
-
 #include <Adafruit_AS5600.h>
 #include "Arduino.h"
 #include "CascadePosVelController.h"
@@ -14,16 +8,27 @@ int numAngles = sizeof(angles) / sizeof(angles[0]);
 #include "OperatingFSM.h"
 #include "ShaftEncoder.h"
 #include "definitions.h"
+#include "BackdrivableController.h"
+#include "Motor.h"
+#include "SpringController.h"
 
 CascadePosVelController controller;
+BackdrivableController backdrivableController;
+SpringController springController;
 MainFSM mainFSM;
 OperatingFSM operatingFSM;
 
-#include "BackdrivableController.h"
-#include "Motor.h"
+// Angles from -45 to 25 degrees
+float angles[] = {-45.0, -40.0, -35.0, -30.0, -25.0, -20.0,  -15.0, -10.0,
+                  -5.0,  0.0,  5.0,  10.0,  15.0, 20.0, 25.0};
+int numAngles = sizeof(angles) / sizeof(angles[0]);
 
-// CascadePosVelController controller;
-BackdrivableController backdrivableController;
+// moving average buffer for motor position
+float motorPositionBuffer[MOTOR_POSITION_FILTER_BUFFER_SIZE];
+int motorPositionBufferIndex = 0;
+float motorPosition = 0.0f;
+
+
 
 void setup() {
   Serial.begin(115200);
@@ -60,42 +65,53 @@ void loop() {
     // Serial.print("Shaft Position: ");
     // Serial.println(readShaftEncoderADC());
 
-    if (readSwitchDIP() == 0b011 && millis() % 300 == 0 && i < 100) {  // store power and error every 100 ms for analysis
-        error = backdrivableController.getError();
-        output = backdrivableController.getOutput();
-        powerArray[i][0] = output;  // store output in array
-        powerArray[i][1] = error;  // store error in array
+    // if (readSwitchDIP() == 0b011 && millis() % 300 == 0 && i < 100) {  // store power and error every 100 ms for analysis
+    //     error = backdrivableController.getError();
+    //     output = backdrivableController.getOutput();
+    //     powerArray[i][0] = output;  // store output in array
+    //     powerArray[i][1] = error;  // store error in array
 
-        i++;
-    } else if (i == 100 && !exportData) {  // print power and error values when DIP switch is turned to 0b010
-        // Serial.begin(115200);
-        // delay(100);  // Allow time for Serial to initialize
-        for (int j = 0; j < i; j++) {
-          Serial.print(powerArray[j][1]);
-          Serial.print(", ");
-          Serial.println(powerArray[j][0]);
-        }
-        exportData = true;  // set export flag to true to indicate data has been exported
+    //     i++;
+    // } else if (i == 100 && !exportData) {  // print power and error values when DIP switch is turned to 0b010
+    //     // Serial.begin(115200);
+    //     // delay(100);  // Allow time for Serial to initialize
+    //     for (int j = 0; j < i; j++) {
+    //       Serial.print(powerArray[j][1]);
+    //       Serial.print(", ");
+    //       Serial.println(powerArray[j][0]);
+    //     }
+    //     exportData = true;  // set export flag to true to indicate data has been exported
+    // }
+
+    if (millis() % 2 == 0) {  // run the controller & FSM update every 10 ms (defined by dt)
+      motorPosition = (pulses / (2000.0 * 51.0)) * 360.0;  // Current position from encoder
+      motorPosition = movingAvg(motorPosition, motorPositionBuffer, MOTOR_POSITION_FILTER_BUFFER_SIZE);
     }
 
     // run the controller & FSM update every 10 ms (defined by dt)
     if (millis() % 10 == 0) {
-      float motorPosition = (pulses / (2000.0 * 51.0)) * 360.0;  // Current position from encoder
-      Serial.println(motorPosition);
+      // Serial.print("Motor Position: ");
+      // Serial.println(motorPosition);
+
+      float shaftPosition = (readShaftEncoderADC() - zeroShaftPosition) * MAGNETIC_ENCODER_RESOLUTION;  // Current position from shaft encoder
+      // Serial.print("Shaft Position: ");
+      // Serial.println(shaftPosition);
 
       // float power = controller.update(targetPosition, motorPosition, dt);
-      float power = backdrivableController.update(4, motorPosition, dt, (readShaftEncoderADC()-zeroShaftPosition)*MAGNETIC_ENCODER_RESOLUTION);
+      // float power = backdrivableController.update(4, motorPosition, dt, (readShaftEncoderADC()-zeroShaftPosition)*MAGNETIC_ENCODER_RESOLUTION);
+      float power = springController.updateLinear(25.0, motorPosition, dt, shaftPosition);
 
       // Use the output to control the motor (set PWM value)
       move(power);
+      // Serial.println(power);
 
-      if (motorPosition < SAFE_MIN || motorPosition > SAFE_MAX) {
+      if (shaftPosition < SAFE_MIN || shaftPosition > SAFE_MAX) {
         digitalWrite(ERROR_LED_PIN, HIGH);  // Turn on LED when out of safe range
       } else {
         digitalWrite(ERROR_LED_PIN, LOW);  // Turn off LED when in safe range
       }
 
-      if (findInArrayWithTolerance(angles, numAngles, motorPosition, 0.1f)) {
+      if (findInArrayWithTolerance(angles, numAngles, shaftPosition, 0.1f)) {
         digitalWrite(7, HIGH);  // Turn on LED when target angle reached
       } else {
         digitalWrite(7, LOW);  // Turn off LED when not at target angle
@@ -116,4 +132,17 @@ bool findInArrayWithTolerance(float arr[], int size, float value,
     }
   }
   return false;
+}
+
+float movingAvg(float newValue, float buffer[], int bufferSize) {
+  // Add the new value to the buffer
+  buffer[motorPositionBufferIndex] = newValue;
+  motorPositionBufferIndex = (motorPositionBufferIndex + 1) % bufferSize;
+
+  // Calculate the average
+  float sum = 0.0f;
+  for (int i = 0; i < bufferSize; i++) {
+    sum += buffer[i];
+  }
+  return sum / bufferSize;
 }

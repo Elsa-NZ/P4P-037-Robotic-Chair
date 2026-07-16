@@ -11,17 +11,20 @@ PID* PIDNonlinearController = nullptr;
 
 SpringController::SpringController() {
     // Initialize linear PID gains
-    kp_linear = 4.0f; 
+    kp_linear = 10.0f;
+    ki_linear = 5.0f;
     kd_linear = 0.0f; 
+    kf_linear = 0.8f; // Feedforward gain for linear control
     
     saturationHigh_linear = 0.9f * 255.0f;
-    saturationLow_linear = 0.1f * 255.0f;
+    saturationLow_linear = 0.0;
 
     // Create PID controllers for position and velocity
-    PIDLinearController = new PID(kp_linear, 0, kd_linear, 0, saturationHigh_linear, saturationLow_linear, 0);
+    PIDLinearController = new PID(kp_linear, ki_linear, kd_linear, 0.5, saturationHigh_linear, saturationLow_linear, 0);
 
     // Initialize nonlinear PID gains
     kp_nonlinear = 0.5f;
+    ki_nonlinear = 0.0f;
     kd_nonlinear = 0.0f;
 
     // Initialize nonlinear PID windup and saturation limits
@@ -29,7 +32,7 @@ SpringController::SpringController() {
     saturationLow_nonlinear = 0.1f * 255.0f;
 
     // Create PID controllers for nonlinear control
-    PIDNonlinearController = new PID(kp_nonlinear, 0, kd_nonlinear, 0, saturationHigh_nonlinear, saturationLow_nonlinear, 0);
+    PIDNonlinearController = new PID(kp_nonlinear, ki_nonlinear, kd_nonlinear, 0, saturationHigh_nonlinear, saturationLow_nonlinear, 0);
 }
 
 SpringController::~SpringController() {
@@ -37,22 +40,36 @@ SpringController::~SpringController() {
     delete PIDLinearController;
 }
 
-float SpringController::updateLinear(float targetPosition, float currentPosition, float dt, float magneticEncoderPosition) {
+float SpringController::updateLinear(float equilibriumPosition, float motorPosition, float dt, float shaftPosition) {
     // Update position PID controller
+
+    float displacement = equilibriumPosition - shaftPosition; // Calculate the angle error for PID
     
+    float targetCompression = displacement / COMPRESSION_RATIO; // Calculate the target compression based on the spring's compression ratio
 
-    error = magneticEncoderPosition - targetPosition; // Calculate the angle error for PID
+    float currentCompression = (motorPosition - shaftPosition); // Calculate the current compression
 
-    float positionOutput = PIDLinearController->update(targetPosition, error, dt); // Note: +ve  turn CCW, -ve  turn CW (NEED TO CHECK PRIOR TESTING)
+    float compressionOutput = PIDLinearController->update(targetCompression, currentCompression, dt);
 
-    // if (positionOutput != 0) {
-    //     positionOutput += 25.5*(abs(positionOutput)/positionOutput);
-    // }
+    float feedforward = kf_linear * (targetCompression / DEGREES_PER_AMP) * (229.5/4); // Feedforward term to assist in reaching target position (value from testing)
 
-    // Serial.println(positionOutput);
+    if (targetCompression < 0) {
+        feedforward = feedforward - 25.5;
+    } else {
+        feedforward = feedforward + 25.5;
+    }
 
-    // Store the final output for retrieval
-    output = positionOutput;
+    output = compressionOutput + feedforward;
+
+    if (output > saturationHigh_linear) {
+        output = saturationHigh_linear;
+    } else if (output < saturationLow_linear && output > 0) {
+        output = saturationLow_linear;
+    } else if (output > -saturationLow_linear && output < 0) {
+        output = -saturationLow_linear;
+    } else if (output < -saturationHigh_linear) {
+        output = -saturationHigh_linear;
+    }
 
     return output;
 }

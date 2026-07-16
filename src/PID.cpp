@@ -17,6 +17,7 @@ PID::PID(float kp, float ki, float kd, float windupLimit, float saturationHigh, 
 float PID::update(float target, float current, float dt) {
     float error = target - current;
 
+    Serial.print(">Error:");
     Serial.println(error);
 
     // Proportional term

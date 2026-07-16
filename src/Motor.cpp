@@ -38,7 +38,7 @@ void move(float power) {
 }
 
 
-PID homingPID(0.055, 0.095, 0.01, 400, 0.27*255, 0.1*255, 1); // homingPID(kp, ki, kd, integral_windup, pwm_max, pwm_min
+PID homingPID(0.055, 0.1, 0.01, 400, 0.27*255, 0.12*255, 1); // homingPID(kp, ki, kd, integral_windup, pwm_max, pwm_min
 unsigned long previousMillis = 0;
 
 int home() {
@@ -60,7 +60,7 @@ int home() {
     analogWrite(PWM_PIN, 0.1*255);
     delay(1000); // Allow time for motor to settle
     pulses = 0; // Reset encoder pulses to zero at home position
-    zeroShaftPosition = position; // Store the zero shaft position
+    zeroShaftPosition = readShaftEncoderADC();; // Store the zero shaft position
     return 1; // Already at home position
   }
 

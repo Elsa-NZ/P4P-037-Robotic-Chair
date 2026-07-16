@@ -27,6 +27,8 @@
 
 #define DEGREES_PER_AMP 8.19647
 
-// add global variable for zero shaft postion
+#define COMPRESSION_RATIO 18.0f // Define the compression ratio for the spring
+
+#define MOTOR_POSITION_FILTER_BUFFER_SIZE 5 // Define the size of the moving average buffer for motor position
 
 #endif // P4P_SRC_DEFINITIONS_H_
