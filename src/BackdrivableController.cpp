@@ -10,11 +10,11 @@ PID* PIDController = nullptr;
 
 BackdrivableController::BackdrivableController() {
     // Initialize position PID gains
-    kp_pos = 30.0f;
-    ki_pos = 5.0f; 
-    kd_pos = 0.0f; 
+    kp_pos = 100.0f; //30
+    ki_pos = 5.0f; //1
+    kd_pos = 0.5f; //1
     // Initialize position PID windup and saturation limits
-    windupLimit_pos = 40.0f; 
+    windupLimit_pos = 50.0f; 
     saturationHigh_pos =  0.9*255; 
     saturationLow_pos = 0.1*255; 
 
@@ -32,9 +32,16 @@ float BackdrivableController::update(float targetError, float currentPosition, f
 
     error = currentPosition - magneticEncoderPosition; // Calculate the angle error for PID
 
+    // Serial.print("Manetic Encoder Position: ");
+    // Serial.println(magneticEncoderPosition);
+
+    // float direction = (magneticEncoderPosition > 0.0f) ? 1.0f : ((magneticEncoderPosition < 0.0f) ? -1.0f : 0.0f);
     float torqueFromChair = BAR_WEIGHT_IN_NEWTON * sin(magneticEncoderPosition * (PI / 180.0f)) * BAR_CENTROID; // Calculate torque from the bar weight based on current position
     float torqueRequired = SPRING_CONSTANT * targetError; // Calculate required torque to achieve target position
-    float requiredDisplacement = (torqueRequired - torqueFromChair * (magneticEncoderPosition/abs(magneticEncoderPosition)))/SPRING_CONSTANT; // Calculate the required displacement to achieve the target position
+    float requiredDisplacement = (torqueRequired - torqueFromChair) / SPRING_CONSTANT; // Calculate the required displacement to achieve the target position
+    // requiredDisplacement += 0.5; // Backlash in spring
+    // Serial.print(">Required Displacement: ");
+    // Serial.println(requiredDisplacement);
 
     // if (abs(error) < 0.5 && targetError == 0) { // degrees
     //     error = 0; 
@@ -42,7 +49,7 @@ float BackdrivableController::update(float targetError, float currentPosition, f
 
     float positionOutput = PIDController->update(requiredDisplacement, error, dt); // Note: +ve  turn CCW, -ve  turn CW (NEED TO CHECK PRIOR TESTING)
 
-    // float feedforward = targetError/DEGREES_PER_AMP; // Feedforward term to assist in reaching target position (value from testing)
+    float feedforward = targetError/DEGREES_PER_AMP; // Feedforward term to assist in reaching target position (value from testing)
 
     // if (positionOutput != 0) {
     //     positionOutput += 25.5*(abs(positionOutput)/positionOutput);
@@ -51,8 +58,8 @@ float BackdrivableController::update(float targetError, float currentPosition, f
     // Serial.println(positionOutput);
 
     // Store the final output for retrieval
-    // output = positionOutput - feedforward;
-    output = positionOutput;
+    output = positionOutput - feedforward;
+    // output = positionOutput;
 
     return output;
 }

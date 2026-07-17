@@ -29,10 +29,10 @@
 
 #define BAR_WEIGHT_IN_NEWTON 9.088965
 #define BAR_CENTROID 0.22 // in meters
-#define SPRING_CONSTANT 1 // in Nm/deg
+#define SPRING_CONSTANT 1.05 // in Nm/deg
 
 #define COMPRESSION_RATIO 18.0f // Define the compression ratio for the spring
 
-#define MOTOR_POSITION_FILTER_BUFFER_SIZE 5 // Define the size of the moving average buffer for motor position
+#define MOTOR_POSITION_FILTER_BUFFER_SIZE 1 // Define the size of the moving average buffer for motor position
 
 #endif // P4P_SRC_DEFINITIONS_H_
