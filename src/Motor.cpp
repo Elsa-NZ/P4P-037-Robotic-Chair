@@ -53,8 +53,10 @@ int home() {
   // homingPID.setSaturationLimits(11.2889365705*log(abs(error))+17.5978355576, 0.1*255); // Set saturation limits for homing PID for range of error values 3-950 and pwm 31-90
 
   float speed = 1.8310546875*analogRead(SPEED_PIN)-740; //(1.8310546875*measuredVelocity)-740)
+  Serial.print("Speed: ");
+  Serial.println(speed);
 
-  if ((position <= SHAFT_HOME_POSITION + HOME_POSITION_TOLERANCE && position >= SHAFT_HOME_POSITION - HOME_POSITION_TOLERANCE) && abs(speed) < 0.5) {
+  if ((position <= SHAFT_HOME_POSITION + HOME_POSITION_TOLERANCE && position >= SHAFT_HOME_POSITION - HOME_POSITION_TOLERANCE) && abs(speed) < 20) { // SOMETHING IS WRONG WITH SPEED
     homed = true;
     homingStarted = false;
     analogWrite(PWM_PIN, 0.1*255);
