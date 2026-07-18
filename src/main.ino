@@ -11,12 +11,14 @@
 #include "BackdrivableController.h"
 #include "Motor.h"
 #include "SpringController.h"
+#include "Trajectory.h"
 
 CascadePosVelController controller;
 BackdrivableController backdrivableController;
 SpringController springController;
 MainFSM mainFSM;
 OperatingFSM operatingFSM;
+Trajectory trajectory;
 
 // Angles from -45 to 25 degrees
 float angles[] = {-45.0, -40.0, -35.0, -30.0, -25.0, -20.0,  -15.0, -10.0,
@@ -60,6 +62,7 @@ void loop() {
   bool exportData = false;  // Flag to indicate if data has been exported
 
   move(0);  // Ensure motor is stopped before starting the test
+  unsigned long starttime = millis();
   while (readSwitchDIP() == 0b001 || readSwitchDIP() == 0b011 || readSwitchDIP() == 0b101) {  // begin testing when a DIP switch is turned on
 
     // Serial.print("Shaft Position: ");
@@ -89,6 +92,7 @@ void loop() {
     }
 
     // run the controller & FSM update every 10 ms (defined by dt)
+
     if (millis() % 10 == 0) {
       // Serial.print("Motor Position: ");
       // Serial.println(motorPosition);
@@ -98,8 +102,9 @@ void loop() {
       // Serial.println(shaftPosition);
 
       // float power = controller.update(targetPosition, motorPosition, dt);
-      // float power = backdrivableController.update(4, motorPosition, dt, (readShaftEncoderADC()-zeroShaftPosition)*MAGNETIC_ENCODER_RESOLUTION);
-      float power = springController.updateLinear(25.0, motorPosition, dt, shaftPosition);
+      // float power = backdrivableController.update(1, motorPosition, dt, (readShaftEncoderADC()-zeroShaftPosition)*MAGNETIC_ENCODER_RESOLUTION);
+      // float power = springController.updateLinear(25.0, motorPosition, dt, shaftPosition);
+      float power = trajectory.followRampTrajectory(shaftPosition, dt, starttime);
 
       // Use the output to control the motor (set PWM value)
       move(power);
