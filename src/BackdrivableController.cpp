@@ -49,7 +49,7 @@ float BackdrivableController::update(float targetError, float currentPosition, f
 
     float positionOutput = PIDController->update(requiredDisplacement, error, dt); // Note: +ve  turn CCW, -ve  turn CW (NEED TO CHECK PRIOR TESTING)
 
-    float feedforward = targetError/DEGREES_PER_AMP; // Feedforward term to assist in reaching target position (value from testing)
+    // float feedforward = targetError/DEGREES_PER_AMP; // Feedforward term to assist in reaching target position (value from testing)
 
     // if (positionOutput != 0) {
     //     positionOutput += 25.5*(abs(positionOutput)/positionOutput);
@@ -58,8 +58,8 @@ float BackdrivableController::update(float targetError, float currentPosition, f
     // Serial.println(positionOutput);
 
     // Store the final output for retrieval
-    output = positionOutput - feedforward;
-    // output = positionOutput;
+    // output = positionOutput - feedforward;
+    output = positionOutput;
 
     return output;
 }

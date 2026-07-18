@@ -33,12 +33,57 @@ Trajectory::Trajectory() {
 
     // Create PID controllers for position and velocity
     TrajectoryControllerPosition = new PID(kp_pos, ki_pos, kd_pos, windupLimit_pos, saturationHigh_pos, saturationLow_pos, 0);
-    TrajectoryControllerVelocity = new PID(kp_vel, ki_vel, kd_vel, windupLimit_vel, saturationHigh_vel, saturationLow_vel, 0);
+    // TrajectoryControllerVelocity = new PID(kp_vel, ki_vel, kd_vel, windupLimit_vel, saturationHigh_vel, saturationLow_vel, 0);
 }
 
 Trajectory::~Trajectory() {
     delete TrajectoryControllerPosition;
     delete TrajectoryControllerVelocity;
+}
+
+float Trajectory::followCurveTrajectory(float shaftPosition, float dt, unsigned long time) {
+    // Implement the logic for following a curve trajectory
+    // This is a placeholder implementation and should be replaced with actual curve-following logic
+    float targetPosition = 0.0f; // Define the target position based on the curve trajectory
+    float currentPosition = shaftPosition; // Current position from shaft encoder
+    long currentTime = millis() - time; // Current time in milliseconds since the start of the trajectory
+
+    if (currentTime < 3000) {
+        targetPosition = (10 * pow((float)currentTime / 3000.0f, 3)- 15 * pow((float)currentTime / 3000.0f, 4) + 6 * pow((float)currentTime / 3000.0f, 5)) * 25.0f; // Example curve logic
+    } else if (currentTime >= 3000 && currentTime < 5000) {
+        targetPosition = 25.0f; // stay in position for 2 seconds
+    } else if (currentTime >= 5000 && currentTime < 10000) {
+        targetPosition = 25+ (10 * pow(((float)currentTime-5000) / 5000.0f, 3)- 15 * pow(((float)currentTime-5000) / 5000.0f, 4) + 6 * pow(((float)currentTime-5000) / 5000.0f, 5)) * (-45-25.0f); // Example curve logic
+    } else if (currentTime >= 10000 && currentTime < 12000) {
+        targetPosition = -45.0f; // stay in position for 2 seconds
+    } else if (currentTime >= 12000 && currentTime < 15000) {
+        targetPosition = -45 + (10 * pow(((float)currentTime-12000) / 3000.0f, 3)- 15 * pow(((float)currentTime-12000) / 3000.0f, 4) + 6 * pow(((float)currentTime-12000) / 3000.0f, 5)) * (45); // Example curve logic
+    } else if (currentTime >= 15000) {
+         targetPosition = 0.0f; // Return to initial position
+    }
+
+    // Update position PID controller
+    float power = TrajectoryControllerPosition->update(targetPosition, currentPosition, dt);
+
+    // Serial.print(">Target Position: ");
+    // Serial.println(targetPosition);
+    //print data every 100ms for analysis
+    
+    if (currentTime - lastTime >= 100) {
+        lastTime = currentTime;
+        Serial.print(currentTime);
+        Serial.print(", ");
+        Serial.print(targetPosition);
+        Serial.print(", ");
+        // Serial.print(">Current Position: ");
+        Serial.println(currentPosition);
+    }
+    
+
+
+    return power;
+
+    
 }
 
 float Trajectory::followRampTrajectory(float shaftPosition, float dt, unsigned long time) {
@@ -77,12 +122,18 @@ float Trajectory::followRampTrajectory(float shaftPosition, float dt, unsigned l
     float power = TrajectoryControllerPosition->update(targetPosition, currentPosition, dt);
 
     // Serial.print(">Target Position: ");
-    Serial.print(currentTime);
-    Serial.print(", ");
-    Serial.print(targetPosition);
-    Serial.print(", ");
-    // Serial.print(">Current Position: ");
-    Serial.println(currentPosition);
+    //print data every 100ms for analysis
+    
+    if (currentTime - lastTime >= 100) {
+        lastTime = currentTime;
+        Serial.print(currentTime);
+        Serial.print(", ");
+        Serial.print(targetPosition);
+        Serial.print(", ");
+        // Serial.print(">Current Position: ");
+        Serial.println(currentPosition);
+    }
+    
     return power;
 }
 
