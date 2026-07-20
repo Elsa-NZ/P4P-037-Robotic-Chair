@@ -12,15 +12,15 @@ CascadePosVelController::CascadePosVelController() {
     kd_pos = 0.1f; 
     // Initialize position PID windup and saturation limits
     windupLimit_pos = 60.0f; 
-    saturationHigh_pos = 400.0f; 
-    saturationLow_pos = -400.0f; 
+    saturationHigh_pos = 50.0f; 
+    saturationLow_pos = -50.0f; 
 
     // Initialize velocity PID gains
-    kp_vel = 0.9f; 
-    ki_vel = 0.15f; 
+    kp_vel = 1.5f; 
+    ki_vel = 0.2f; 
     kd_vel = 0.0f; 
     // Initialize velocity PID windup and saturation limits
-    windupLimit_vel = 80.0f; 
+    windupLimit_vel = 180.0f; 
     saturationHigh_vel = 0.9*255; 
     saturationLow_vel = 0.1*255; 
 
@@ -38,9 +38,9 @@ float CascadePosVelController::update(float targetPosition, float currentPositio
     // Update position PID controller
     float positionOutput = positionPID->update(targetPosition, currentPosition, dt);
 
-    if (positionOutput != 0) {
-        positionOutput += 25.5*(abs(positionOutput)/positionOutput);
-    }
+    // if (positionOutput != 0) {
+    //     positionOutput += 25.5*(abs(positionOutput)/positionOutput);
+    // }
 
     int speed = 1.8310546875*analogRead(SPEED_PIN)-740; //(1.8310546875*measuredVelocity)-740)
 

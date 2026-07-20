@@ -21,8 +21,9 @@ OperatingFSM operatingFSM;
 Trajectory trajectory;
 
 // Angles from -45 to 25 degrees
-float angles[] = {-45.0, -40.0, -35.0, -30.0, -25.0, -20.0,  -15.0, -10.0,
-                  -5.0,  0.0,  5.0,  10.0,  15.0, 20.0, 25.0};
+float angles[] = {-90.0, -85.0, -80.0, -75.0, -70.0, -65.0, -60.0, -55.0, -50.0, -45.0, 
+                  -40.0, -35.0, -30.0, -25.0, -20.0,  -15.0, -10.0,
+                  -5.0,  0.0,  5.0,  10.0,  15.0, 20.0, 25.0, 30.0, 35.0, 40.0, 45.0};
 int numAngles = sizeof(angles) / sizeof(angles[0]);
 
 // moving average buffer for motor position
@@ -45,30 +46,37 @@ void setup() {
     delay(10);
   }
 
+
+  while (readShaftEncoderADC() > (1010.0f)) {  // Move to -90 degrees before starting the test
+    float power = controller.update(-90, (readShaftEncoderADC() - zeroShaftPosition) * MAGNETIC_ENCODER_RESOLUTION, 0.01);
+    move(power);
+    delay(10);
+  }
+
   setLED(HOMING_LED_PIN);  // turn homing led light on to indicate it has homed
 }
 
 void loop() {
   pinMode(7, OUTPUT);  // Set pin 7 as output for LED indicator
-  // float targetPosition = 0.0f;
+  float targetPosition = angles[0];  // Set the target position to the first angle in the array
+  // int theta = 0;  // Index for the angles array
   float dt = 0.01f;
 
   float output = 0.0f;
   float error = 0.0f;
 
   //2d array of 100 elements to store power and error values for analysis
-  float powerArray[100][2];  // [0] for power, [1] for error
+  float powerArray[50][2];  // [0] for power, [1] for error
   int i = 0;
   bool exportData = false;  // Flag to indicate if data has been exported
+  bool exportedData = false;  // Flag to indicate if data has been exported
 
   move(0);  // Ensure motor is stopped before starting the test
   unsigned long starttime = millis();
   while (readSwitchDIP() == 0b001 || readSwitchDIP() == 0b011 || readSwitchDIP() == 0b101) {  // begin testing when a DIP switch is turned on
 
-    // Serial.print("Shaft Position: ");
-    // Serial.println(readShaftEncoderADC());
 
-    // if (readSwitchDIP() == 0b011 && millis() % 300 == 0 && i < 100) {  // store power and error every 100 ms for analysis
+    if (exportData == true) {  // store power and error every 100 ms for analysis
     //     error = backdrivableController.getError();
     //     output = backdrivableController.getOutput();
     //     powerArray[i][0] = output;  // store output in array
@@ -78,13 +86,14 @@ void loop() {
     // } else if (i == 100 && !exportData) {  // print power and error values when DIP switch is turned to 0b010
     //     // Serial.begin(115200);
     //     // delay(100);  // Allow time for Serial to initialize
-    //     for (int j = 0; j < i; j++) {
-    //       Serial.print(powerArray[j][1]);
-    //       Serial.print(", ");
-    //       Serial.println(powerArray[j][0]);
-    //     }
-    //     exportData = true;  // set export flag to true to indicate data has been exported
-    // }
+        for (int j = 0; j < i; j++) {
+          Serial.print(powerArray[j][1]);
+          Serial.print(", ");
+          Serial.println(powerArray[j][0]);
+        }
+        exportData = false;  // set export flag to false to indicate data has been exported
+        exportedData = true;  // set exported flag to true to indicate data has been exported
+    }
 
     if (millis() % 2 == 0) {  // run the controller & FSM update every 10 ms (defined by dt)
       motorPosition = (pulses / (2000.0 * 51.0)) * 360.0;  // Current position from encoder
@@ -94,21 +103,18 @@ void loop() {
     // run the controller & FSM update every 10 ms (defined by dt)
 
     if (millis() % 10 == 0) {
-      // Serial.print("Motor Position: ");
-      // Serial.println(motorPosition);
 
       float shaftPosition = (readShaftEncoderADC() - zeroShaftPosition) * MAGNETIC_ENCODER_RESOLUTION;  // Current position from shaft encoder
-      // Serial.print("Shaft Position: ");
-      // Serial.println(shaftPosition);
 
-      // float power = controller.update(targetPosition, motorPosition, dt);
-      // float power = backdrivableController.update(1, motorPosition, dt, (readShaftEncoderADC()-zeroShaftPosition)*MAGNETIC_ENCODER_RESOLUTION);
+      float speed = 1.8310546875 * analogRead(SPEED_PIN) - 740;
+    
+      float power = controller.update(targetPosition, shaftPosition, dt);
+      // float power = backdrivableController.update(0, motorPosition, dt, (readShaftEncoderADC()-zeroShaftPosition)*MAGNETIC_ENCODER_RESOLUTION);
       // float power = springController.updateLinear(25.0, motorPosition, dt, shaftPosition);
-      float power = trajectory.followRampTrajectory(shaftPosition, dt, starttime);
+      // float power = trajectory.followRampTrajectory(shaftPosition, dt, starttime);
 
       // Use the output to control the motor (set PWM value)
       move(power);
-      // Serial.println(power);
 
       if (shaftPosition < SAFE_MIN || shaftPosition > SAFE_MAX) {
         digitalWrite(ERROR_LED_PIN, HIGH);  // Turn on LED when out of safe range
@@ -116,8 +122,17 @@ void loop() {
         digitalWrite(ERROR_LED_PIN, LOW);  // Turn off LED when in safe range
       }
 
-      if (findInArrayWithTolerance(angles, numAngles, shaftPosition, 0.1f)) {
+      if (shaftPosition >= targetPosition - 0.5 && shaftPosition <= targetPosition + 0.5 && speed < 0.5 && exportedData == false) {  // Check if motor angle has reached one of the specified angles and speed is low
         digitalWrite(7, HIGH);  // Turn on LED when target angle reached
+        delay(500);  // Wait for 500 ms to ensure stable reading
+        if (i >= numAngles) {
+          exportData = true;  // Set export flag to true when all angles are reached
+          move(0.1*255);  // Stop the motor after reaching all angles
+        }
+        powerArray[i][0] = motorPosition;  // store motor position in array
+        powerArray[i][1] = shaftPosition;  // store shaft position in array
+        i++;  // Move to the next angle in the array
+        targetPosition = angles[i];  // Update the target position to the next angle
       } else {
         digitalWrite(7, LOW);  // Turn off LED when not at target angle
       }

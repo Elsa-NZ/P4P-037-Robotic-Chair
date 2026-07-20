@@ -40,8 +40,10 @@ float BackdrivableController::update(float targetError, float currentPosition, f
     float torqueRequired = SPRING_CONSTANT * targetError; // Calculate required torque to achieve target position
     float requiredDisplacement = (torqueRequired - torqueFromChair) / SPRING_CONSTANT; // Calculate the required displacement to achieve the target position
     // requiredDisplacement += 0.5; // Backlash in spring
-    // Serial.print(">Required Displacement: ");
-    // Serial.println(requiredDisplacement);
+    Serial.print(">Required Displacement: ");
+    Serial.println(requiredDisplacement);
+    Serial.print(">Displacement: ");
+    Serial.println(error);
 
     // if (abs(error) < 0.5 && targetError == 0) { // degrees
     //     error = 0; 
