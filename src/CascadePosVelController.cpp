@@ -7,8 +7,8 @@ PID* velocityPID = nullptr;
 
 CascadePosVelController::CascadePosVelController() {
     // Initialize position PID gains
-    kp_pos = 5.0f;
-    ki_pos = 0.3f; 
+    kp_pos = 7.0f;
+    ki_pos = 0.6f; 
     kd_pos = 0.1f; 
     // Initialize position PID windup and saturation limits
     windupLimit_pos = 60.0f; 
@@ -17,7 +17,7 @@ CascadePosVelController::CascadePosVelController() {
 
     // Initialize velocity PID gains
     kp_vel = 1.5f; 
-    ki_vel = 0.2f; 
+    ki_vel = 0.7f; 
     kd_vel = 0.0f; 
     // Initialize velocity PID windup and saturation limits
     windupLimit_vel = 180.0f; 
@@ -25,8 +25,8 @@ CascadePosVelController::CascadePosVelController() {
     saturationLow_vel = 0.1*255; 
 
     // Create PID controllers for position and velocity
-    positionPID = new PID(kp_pos, ki_pos, kd_pos, windupLimit_pos, saturationHigh_pos, saturationLow_pos, 1);
-    velocityPID = new PID(kp_vel, ki_vel, kd_vel, windupLimit_vel, saturationHigh_vel, saturationLow_vel, 1);
+    positionPID = new PID(kp_pos, ki_pos, kd_pos, windupLimit_pos, saturationHigh_pos, saturationLow_pos, 0);
+    velocityPID = new PID(kp_vel, ki_vel, kd_vel, windupLimit_vel, saturationHigh_vel, saturationLow_vel, 0);
 }
 
 CascadePosVelController::~CascadePosVelController() {
@@ -35,6 +35,11 @@ CascadePosVelController::~CascadePosVelController() {
 }
 
 float CascadePosVelController::update(float targetPosition, float currentPosition, float dt) {
+    // Serial.print("Target Position: ");
+    // Serial.println(targetPosition);
+    // Serial.print("Current Position: ");
+    // Serial.println(currentPosition);
+    
     // Update position PID controller
     float positionOutput = positionPID->update(targetPosition, currentPosition, dt);
 

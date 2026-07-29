@@ -38,7 +38,7 @@ void move(float power) {
 }
 
 
-PID homingPID(0.055, 0.1, 0.01, 400, 0.27*255, 0.12*255, 1); // homingPID(kp, ki, kd, integral_windup, pwm_max, pwm_min
+PID homingPID(0.057, 0.12, 0.01, 400, 0.27*255, 0.12*255, 1); // homingPID(kp, ki, kd, integral_windup, pwm_max, pwm_min
 unsigned long previousMillis = 0;
 
 int home() {

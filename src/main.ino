@@ -20,10 +20,13 @@ MainFSM mainFSM;
 OperatingFSM operatingFSM;
 Trajectory trajectory;
 
+// // Angles from -45 to 25 degrees
+// float angles[] = {-90.0, -85.0, -80.0, -75.0, -70.0, -65.0, -60.0, -55.0, -50.0, -45.0, 
+//                   -40.0, -35.0, -30.0, -25.0, -20.0,  -15.0, -10.0,
+//                   -5.0,  0.0,  5.0,  10.0,  15.0, 20.0, 25.0, 30.0, 35.0, 40.0, 45.0};
 // Angles from -45 to 25 degrees
-float angles[] = {-90.0, -85.0, -80.0, -75.0, -70.0, -65.0, -60.0, -55.0, -50.0, -45.0, 
-                  -40.0, -35.0, -30.0, -25.0, -20.0,  -15.0, -10.0,
-                  -5.0,  0.0,  5.0,  10.0,  15.0, 20.0, 25.0, 30.0, 35.0, 40.0, 45.0};
+float angles[] = {-45.0};
+// float angles[] = {0.0};
 int numAngles = sizeof(angles) / sizeof(angles[0]);
 
 // moving average buffer for motor position
@@ -47,11 +50,11 @@ void setup() {
   }
 
 
-  while (readShaftEncoderADC() > (1010.0f)) {  // Move to -90 degrees before starting the test
-    float power = controller.update(-90, (readShaftEncoderADC() - zeroShaftPosition) * MAGNETIC_ENCODER_RESOLUTION, 0.01);
-    move(power);
-    delay(10);
-  }
+  // while (readShaftEncoderADC() > (1010.0f)) {  // Move to -90 degrees before starting the test
+  //   float power = controller.update(-90, (readShaftEncoderADC() - zeroShaftPosition) * MAGNETIC_ENCODER_RESOLUTION, 0.01);
+  //   move(power);
+  //   delay(10);
+  // }
 
   setLED(HOMING_LED_PIN);  // turn homing led light on to indicate it has homed
 }
@@ -124,14 +127,16 @@ void loop() {
 
       if (shaftPosition >= targetPosition - 0.5 && shaftPosition <= targetPosition + 0.5 && speed < 0.5 && exportedData == false) {  // Check if motor angle has reached one of the specified angles and speed is low
         digitalWrite(7, HIGH);  // Turn on LED when target angle reached
-        delay(500);  // Wait for 500 ms to ensure stable reading
+        // delay(500);  // Wait for 500 ms to ensure stable reading
         if (i >= numAngles) {
           exportData = true;  // Set export flag to true when all angles are reached
           move(0.1*255);  // Stop the motor after reaching all angles
         }
         powerArray[i][0] = motorPosition;  // store motor position in array
         powerArray[i][1] = shaftPosition;  // store shaft position in array
-        i++;  // Move to the next angle in the array
+        Serial.print("Compression: ");
+        Serial.println(motorPosition-shaftPosition);
+        // i++;  // Move to the next angle in the array
         targetPosition = angles[i];  // Update the target position to the next angle
       } else {
         digitalWrite(7, LOW);  // Turn off LED when not at target angle
