@@ -31,7 +31,7 @@
 #define BAR_CENTROID 0.22 // in meters
 #define SPRING_CONSTANT 1.05 // in Nm/deg
 
-#define COMPRESSION_RATIO 18.0f // Define the compression ratio for the spring
+#define COMPRESSION_RATIO 3.5f // Define the compression ratio for the spring
 
 #define MOTOR_POSITION_FILTER_BUFFER_SIZE 1 // Define the size of the moving average buffer for motor position
 
