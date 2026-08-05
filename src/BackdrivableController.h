@@ -17,6 +17,8 @@ private:
     float windupLimit_pos, saturationHigh_pos, saturationLow_pos;
     float output;
     float error;
+    float MA_filter(float value);
+    float filterdOutput, prevalue1, prevalue2, prevalue3, prevalue4, prevalue5;
 };
 
 #endif  // P4P_SRC_BACKDRIVABLECONTROLLER_H_

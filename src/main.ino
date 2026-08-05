@@ -108,30 +108,32 @@ void loop() {
     if (millis() % 10 == 0) {
 
       float shaftPosition = (readShaftEncoderADC() - zeroShaftPosition) * MAGNETIC_ENCODER_RESOLUTION;  // Current position from shaft encoder
-
+      Serial.print(">Shaft Position: ");
+      Serial.println(shaftPosition);
+      
       float speed = 1.8310546875 * analogRead(SPEED_PIN) - 740;
     
       // float power = controller.update(targetPosition, shaftPosition, dt);
-      float power = backdrivableController.update(2, motorPosition, dt, (readShaftEncoderADC()-zeroShaftPosition)*MAGNETIC_ENCODER_RESOLUTION);
+      float power = backdrivableController.update(0, motorPosition, dt, (readShaftEncoderADC()-zeroShaftPosition)*MAGNETIC_ENCODER_RESOLUTION);
       // float power = springController.updateLinear(0.0, motorPosition, dt, shaftPosition);
       // float power = trajectory.followRampTrajectory(shaftPosition, dt, starttime);
 
       // Use the output to control the motor (set PWM value)
       move(power);
 
-      if (shaftPosition < SAFE_MIN || shaftPosition > SAFE_MAX) {
-        digitalWrite(ERROR_LED_PIN, HIGH);  // Turn on LED when out of safe range
-      } else {
-        digitalWrite(ERROR_LED_PIN, LOW);  // Turn off LED when in safe range
-      }
+      // if (shaftPosition < SAFE_MIN || shaftPosition > SAFE_MAX) {
+      //   digitalWrite(ERROR_LED_PIN, HIGH);  // Turn on LED when out of safe range
+      // } else {
+      //   digitalWrite(ERROR_LED_PIN, LOW);  // Turn off LED when in safe range
+      // }
 
-      if (findInArrayWithTolerance(angles, numAngles, shaftPosition, 1.0)) {  // Check if motor angle has reached one of the specified angles in the angles array
-        digitalWrite(7, HIGH);  // Turn on LED when target angle reached
-        Serial.print("Compression: ");
-        Serial.println(motorPosition-shaftPosition);
-      } else {
-        digitalWrite(7, LOW);  // Turn off LED when not at target angle
-      }
+      // if (findInArrayWithTolerance(angles, numAngles, shaftPosition, 1.0)) {  // Check if motor angle has reached one of the specified angles in the angles array
+      //   digitalWrite(7, HIGH);  // Turn on LED when target angle reached
+      //   Serial.print("Compression: ");
+      //   Serial.println(motorPosition-shaftPosition);
+      // } else {
+      //   digitalWrite(7, LOW);  // Turn off LED when not at target angle
+      // }
     }
 
       // if (shaftPosition >= targetPosition - 0.5 && shaftPosition <= targetPosition + 0.5 && speed < 0.5 && exportedData == false) {  // Check if motor angle has reached one of the specified angles and speed is low
