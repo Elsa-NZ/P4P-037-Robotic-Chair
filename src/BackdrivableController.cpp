@@ -10,11 +10,11 @@ PID* PIDController = nullptr;
 
 BackdrivableController::BackdrivableController() {
     // Initialize position PID gains
-    kp_pos = 100.0f; //30
-    ki_pos = 5.0f; //1
-    kd_pos = 0.5f; //1
+    kp_pos = 60.0f; //30
+    ki_pos = 10.0f; //1
+    kd_pos = 1.0f; //1 (keep it at 1 to prevent wobbles)
     // Initialize position PID windup and saturation limits
-    windupLimit_pos = 50.0f; 
+    windupLimit_pos = 200.0f; 
     saturationHigh_pos =  0.9*255; 
     saturationLow_pos = 0.1*255; 
 
@@ -26,19 +26,34 @@ BackdrivableController::~BackdrivableController() {
     delete PIDController;
 }
 
-float BackdrivableController::update(float targetError, float currentPosition, float dt, float magneticEncoderPosition) {
+float BackdrivableController::update(float targetError, float currentPosition, float dt, float shaftAngle) {
     // Update position PID controller
+    float torqueRequired, torqueFromChair, requiredDisplacement, torque = 0.0f;
     
 
-    error = currentPosition - magneticEncoderPosition; // Calculate the angle error for PID
+    error = currentPosition - shaftAngle; // Calculate the angle error for PID
 
     // Serial.print("Manetic Encoder Position: ");
     // Serial.println(magneticEncoderPosition);
 
-    // float direction = (magneticEncoderPosition > 0.0f) ? 1.0f : ((magneticEncoderPosition < 0.0f) ? -1.0f : 0.0f);
-    float torqueFromChair = BAR_WEIGHT_IN_NEWTON * sin(magneticEncoderPosition * (PI / 180.0f)) * BAR_CENTROID; // Calculate torque from the bar weight based on current position
-    float torqueRequired = SPRING_CONSTANT * targetError; // Calculate required torque to achieve target position
-    float requiredDisplacement = (torqueRequired - torqueFromChair) / SPRING_CONSTANT; // Calculate the required displacement to achieve the target position
+    
+    torqueFromChair = BAR_WEIGHT_IN_NEWTON * sin(shaftAngle * (PI / 180.0f)) * BAR_CENTROID; // Calculate torque from the bar weight based on current position
+    //float torqueRequired = pow(targetError, 3)*0.0153 + 0.1265*pow(targetError, 2)+2.1336*targetError + 1.8911; // Calculate required torque to achieve target position
+    if (targetError > 0) {
+        torqueRequired = 0.1965 * pow(targetError, 2) + 2.7137*targetError; // Calculate required torque to achieve target position
+    } else {
+        torqueRequired = -0.1849 * pow(targetError,2) + 0.4371*targetError; // Calculate required torque to achieve target position
+    }
+    torque = torqueRequired - torqueFromChair; // Calculate the net torque required to achieve target position
+    // requiredDisplacement = -0.0001*pow(torque,3) - 0.0007*pow(torque,2) + 0.4253*torque -1.4922; // Calculate the required displacement to achieve the target position
+    if (torque > 0) {
+        requiredDisplacement = -0.0027* pow(torque,2) + 0.3236 * torque; // Calculate the required displacement to achieve the target position
+    } else {
+        // requiredDisplacement = 0.0096 * pow(torque, 2) + 0.6876 * torque; // Calculate the required displacement to achieve the target position
+        requiredDisplacement = -0.0027* pow(torque,2) + 0.3236 * torque;
+    }
+    
+    
     // requiredDisplacement += 0.5; // Backlash in spring
     Serial.print(">Required Displacement: ");
     Serial.println(requiredDisplacement);

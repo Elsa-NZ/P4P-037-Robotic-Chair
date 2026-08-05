@@ -9,7 +9,7 @@
 #define SPEED_PIN A1
 // #define ON_OFF_BUTTON 8
 
-#define SHAFT_HOME_POSITION 1564.0f //2048.0f
+#define SHAFT_HOME_POSITION 1531.0f //2048.0f
 #define HOME_POSITION_TOLERANCE 5.0f
 #define MAGNETIC_ENCODER_RESOLUTION 0.087890625f
 
@@ -27,8 +27,8 @@
 
 #define DEGREES_PER_AMP 8.19647
 
-#define BAR_WEIGHT_IN_NEWTON 9.088965
-#define BAR_CENTROID 0.22 // in meters
+#define BAR_WEIGHT_IN_NEWTON 32.40243
+#define BAR_CENTROID 0.6 // in meters
 #define SPRING_CONSTANT 1.05 // in Nm/deg
 
 #define COMPRESSION_RATIO 3.5f // Define the compression ratio for the spring

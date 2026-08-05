@@ -21,20 +21,20 @@ void motorSetup() {
 }
 
 void move(float power) {
-    // if (isnan(power) || abs(power) < 0.1*255) { // If power is NaN or below threshold, set to minimum PWM value
-    //     power = 0.1*255; // Set a minimum PWM value to prevent controller error
-    // } else if (power < 0) {
-    //   digitalWrite(DIRECTION_PIN, HIGH); // CW
-    //   power = abs(power);
-    // } else {
-    //   digitalWrite(DIRECTION_PIN, LOW); // CCW
-    // }
+    if (isnan(power) || abs(power) < 0.1*255) { // If power is NaN or below threshold, set to minimum PWM value
+        power = 0.1*255; // Set a minimum PWM value to prevent controller error
+    } else if (power < 0) {
+      digitalWrite(DIRECTION_PIN, HIGH); // CW
+      power = abs(power);
+    } else {
+      digitalWrite(DIRECTION_PIN, LOW); // CCW
+    }
 
-    // // Serial.print("Motor Power: ");
-    // // Serial.println(power);
+    // Serial.print("Motor Power: ");
+    // Serial.println(power);
 
-    // // Use the output to control the motor (set PWM value)
-    // analogWrite(PWM_PIN, power);
+    // Use the output to control the motor (set PWM value)
+    analogWrite(PWM_PIN, power);
 }
 
 

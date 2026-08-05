@@ -44,10 +44,10 @@ void setup() {
   motorSetup();
 
   // Home at the very start of testing!!
-  // while (!homed) {
-  //   home();
-  //   // delay(10);
-  // }
+  while (!homed) {
+    home();
+    // delay(10);
+  }
 
 
   // while (readShaftEncoderADC() > (1010.0f)) {  // Move to -90 degrees before starting the test
@@ -56,7 +56,7 @@ void setup() {
   //   delay(10);
   // }
 
-  // setLED(HOMING_LED_PIN);  // turn homing led light on to indicate it has homed
+  setLED(HOMING_LED_PIN);  // turn homing led light on to indicate it has homed
 }
 
 void loop() {
@@ -79,24 +79,24 @@ void loop() {
   while (readSwitchDIP() == 0b001 || readSwitchDIP() == 0b011 || readSwitchDIP() == 0b101) {  // begin testing when a DIP switch is turned on
 
 
-    if (exportData == true) {  // store power and error every 100 ms for analysis
-    //     error = backdrivableController.getError();
-    //     output = backdrivableController.getOutput();
-    //     powerArray[i][0] = output;  // store output in array
-    //     powerArray[i][1] = error;  // store error in array
+    // if (exportData == true) {  // store power and error every 100 ms for analysis
+    // //     error = backdrivableController.getError();
+    // //     output = backdrivableController.getOutput();
+    // //     powerArray[i][0] = output;  // store output in array
+    // //     powerArray[i][1] = error;  // store error in array
 
-    //     i++;
-    // } else if (i == 100 && !exportData) {  // print power and error values when DIP switch is turned to 0b010
-    //     // Serial.begin(115200);
-    //     // delay(100);  // Allow time for Serial to initialize
-        for (int j = 0; j < i; j++) {
-          Serial.print(powerArray[j][1]);
-          Serial.print(", ");
-          Serial.println(powerArray[j][0]);
-        }
-        exportData = false;  // set export flag to false to indicate data has been exported
-        exportedData = true;  // set exported flag to true to indicate data has been exported
-    }
+    // //     i++;
+    // // } else if (i == 100 && !exportData) {  // print power and error values when DIP switch is turned to 0b010
+    // //     // Serial.begin(115200);
+    // //     // delay(100);  // Allow time for Serial to initialize
+    //     for (int j = 0; j < i; j++) {
+    //       Serial.print(powerArray[j][1]);
+    //       Serial.print(", ");
+    //       Serial.println(powerArray[j][0]);
+    //     }
+    //     exportData = false;  // set export flag to false to indicate data has been exported
+    //     exportedData = true;  // set exported flag to true to indicate data has been exported
+    // }
 
     if (millis() % 2 == 0) {  // run the controller & FSM update every 10 ms (defined by dt)
       motorPosition = (pulses / (2000.0 * 51.0)) * 360.0;  // Current position from encoder
@@ -105,40 +105,34 @@ void loop() {
 
     // run the controller & FSM update every 10 ms (defined by dt)
 
-    if(millis() % 200 == 0) {
-      // Serial.print("Motor Position: ");
-      Serial.print(motorPosition);
-      Serial.print(",");
-      Serial.println((readShaftEncoderADC() - zeroShaftPosition) * MAGNETIC_ENCODER_RESOLUTION);
-    }
+    if (millis() % 10 == 0) {
 
-    // if (millis() % 10 == 0) {
+      float shaftPosition = (readShaftEncoderADC() - zeroShaftPosition) * MAGNETIC_ENCODER_RESOLUTION;  // Current position from shaft encoder
 
-    //   float shaftPosition = (readShaftEncoderADC() - zeroShaftPosition) * MAGNETIC_ENCODER_RESOLUTION;  // Current position from shaft encoder
-
-    //   float speed = 1.8310546875 * analogRead(SPEED_PIN) - 740;
+      float speed = 1.8310546875 * analogRead(SPEED_PIN) - 740;
     
-    //   // float power = controller.update(targetPosition, shaftPosition, dt);
-    //   // float power = backdrivableController.update(0, motorPosition, dt, (readShaftEncoderADC()-zeroShaftPosition)*MAGNETIC_ENCODER_RESOLUTION);
-    //   float power = springController.updateLinear(0.0, motorPosition, dt, shaftPosition);
-    //   // float power = trajectory.followRampTrajectory(shaftPosition, dt, starttime);
+      // float power = controller.update(targetPosition, shaftPosition, dt);
+      float power = backdrivableController.update(2, motorPosition, dt, (readShaftEncoderADC()-zeroShaftPosition)*MAGNETIC_ENCODER_RESOLUTION);
+      // float power = springController.updateLinear(0.0, motorPosition, dt, shaftPosition);
+      // float power = trajectory.followRampTrajectory(shaftPosition, dt, starttime);
 
-    //   // Use the output to control the motor (set PWM value)
-    //   move(power);
+      // Use the output to control the motor (set PWM value)
+      move(power);
 
-    //   if (shaftPosition < SAFE_MIN || shaftPosition > SAFE_MAX) {
-    //     digitalWrite(ERROR_LED_PIN, HIGH);  // Turn on LED when out of safe range
-    //   } else {
-    //     digitalWrite(ERROR_LED_PIN, LOW);  // Turn off LED when in safe range
-    //   }
+      if (shaftPosition < SAFE_MIN || shaftPosition > SAFE_MAX) {
+        digitalWrite(ERROR_LED_PIN, HIGH);  // Turn on LED when out of safe range
+      } else {
+        digitalWrite(ERROR_LED_PIN, LOW);  // Turn off LED when in safe range
+      }
 
-      // if (findInArrayWithTolerance(angles, numAngles, shaftPosition, 1.0)) {  // Check if motor angle has reached one of the specified angles in the angles array
-      //   digitalWrite(7, HIGH);  // Turn on LED when target angle reached
-      //   Serial.print("Compression: ");
-      //   Serial.println(motorPosition-shaftPosition);
-      // } else {
-      //   digitalWrite(7, LOW);  // Turn off LED when not at target angle
-      // }
+      if (findInArrayWithTolerance(angles, numAngles, shaftPosition, 1.0)) {  // Check if motor angle has reached one of the specified angles in the angles array
+        digitalWrite(7, HIGH);  // Turn on LED when target angle reached
+        Serial.print("Compression: ");
+        Serial.println(motorPosition-shaftPosition);
+      } else {
+        digitalWrite(7, LOW);  // Turn off LED when not at target angle
+      }
+    }
 
       // if (shaftPosition >= targetPosition - 0.5 && shaftPosition <= targetPosition + 0.5 && speed < 0.5 && exportedData == false) {  // Check if motor angle has reached one of the specified angles and speed is low
       //   digitalWrite(7, HIGH);  // Turn on LED when target angle reached
