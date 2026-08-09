@@ -121,11 +121,11 @@ void loop() {
       // Use the output to control the motor (set PWM value)
       move(power);
 
-      // if (shaftPosition < SAFE_MIN || shaftPosition > SAFE_MAX) {
-      //   digitalWrite(ERROR_LED_PIN, HIGH);  // Turn on LED when out of safe range
-      // } else {
-      //   digitalWrite(ERROR_LED_PIN, LOW);  // Turn off LED when in safe range
-      // }
+      if (shaftPosition < SAFE_MIN || shaftPosition > SAFE_MAX) {
+        digitalWrite(ERROR_LED_PIN, HIGH);  // Turn on LED when out of safe range
+      } else {
+        digitalWrite(ERROR_LED_PIN, LOW);  // Turn off LED when in safe range
+      }
 
       // if (findInArrayWithTolerance(angles, numAngles, shaftPosition, 1.0)) {  // Check if motor angle has reached one of the specified angles in the angles array
       //   digitalWrite(7, HIGH);  // Turn on LED when target angle reached

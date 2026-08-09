@@ -12,7 +12,7 @@ BackdrivableController::BackdrivableController() {
     // Initialize position PID gains
     kp_pos = 50.0f; //30
     ki_pos = 14.0f; //1
-    kd_pos = 0.7f; //1 (keep it at 1 to prevent wobbles)
+    kd_pos = 1.0f; //1 (keep it at 1 to prevent wobbles)
     // Initialize position PID windup and saturation limits
     windupLimit_pos = 200.0f; 
     saturationHigh_pos =  0.9*255; 
@@ -55,7 +55,8 @@ float BackdrivableController::update(float targetError, float motorAngle, float 
     torque = torqueRequired - torqueFromChair; // Calculate the net torque required to achieve target position
     // requiredDisplacement = -0.0001*pow(torque,3) - 0.0007*pow(torque,2) + 0.4253*torque -1.4922; // Calculate the required displacement to achieve the target position
     if (torque < 0) {
-        requiredDisplacement = 0.0027 * pow(torque,2) + 0.3236 * torque; // Calculate the required displacement to achieve the target position
+        // requiredDisplacement = 0.0027 * pow(torque,2) + 0.3236 * torque; // Calculate the required displacement to achieve the target position
+        requiredDisplacement = 0.0096 * pow(torque, 2) + 0.6876 * torque;
     } else {
         // requiredDisplacement = 0.0096 * pow(torque, 2) + 0.6876 * torque; // Calculate the required displacement to achieve the target position
         requiredDisplacement = -0.0096 * pow(torque,2) + 0.6876 * torque;
