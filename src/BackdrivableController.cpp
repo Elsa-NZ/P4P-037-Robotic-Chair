@@ -10,7 +10,7 @@ PID* PIDController = nullptr;
 
 BackdrivableController::BackdrivableController() {
     // Initialize position PID gains
-    kp_pos = 50.0f; //53
+    kp_pos = 53.0f; //53
     ki_pos = 16.0f; //16
     kd_pos = 1.0f; //1 (keep it at 1 to prevent wobbles)
     // Initialize position PID windup and saturation limits
@@ -64,12 +64,16 @@ float BackdrivableController::update(float targetTorque, float motorAngle, float
     
     
     // requiredDisplacement += 0.5; // Backlash in spring
-    Serial.print(">Required Torque: ");
-    Serial.println(torque);
+    // Serial.print(">Required Torque: ");
+    // Serial.println(torque);
     Serial.print(">Required Displacement: ");
     Serial.println(requiredDisplacement);
     Serial.print(">Displacement: ");
     Serial.println(error);
+    // Serial.print(">Motor Angle: ");
+    // Serial.println(motorAngle);
+    // Serial.print(">Shaft Angle: ");
+    // Serial.println(shaftAngle);
 
     // if (abs(error) < 0.5 && targetError == 0) { // degrees
     //     error = 0; 
@@ -77,8 +81,8 @@ float BackdrivableController::update(float targetTorque, float motorAngle, float
 
     float positionOutput = PIDController->update(requiredDisplacement, error, dt); // Note: +ve  turn CCW, -ve  turn CW (NEED TO CHECK PRIOR TESTING)
 
-    Serial.print(">Position Output: ");
-    Serial.println(positionOutput);
+    // Serial.print(">Position Output: ");
+    // Serial.println(positionOutput);
 
     // float feedforward = targetError/DEGREES_PER_AMP; // Feedforward term to assist in reaching target position (value from testing)
 
