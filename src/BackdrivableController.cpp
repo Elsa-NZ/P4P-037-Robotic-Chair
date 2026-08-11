@@ -10,8 +10,8 @@ PID* PIDController = nullptr;
 
 BackdrivableController::BackdrivableController() {
     // Initialize position PID gains
-    kp_pos = 50.0f; //30
-    ki_pos = 14.0f; //1
+    kp_pos = 53.0f; //53
+    ki_pos = 16.0f; //16
     kd_pos = 1.0f; //1 (keep it at 1 to prevent wobbles)
     // Initialize position PID windup and saturation limits
     windupLimit_pos = 200.0f; 
@@ -33,7 +33,7 @@ BackdrivableController::~BackdrivableController() {
     delete PIDController;
 }
 
-float BackdrivableController::update(float targetError, float motorAngle, float dt, float shaftAngle) {
+float BackdrivableController::update(float targetTorque, float motorAngle, float dt, float shaftAngle) {
     // Update position PID controller
     float torqueRequired, torqueFromChair, requiredDisplacement, torque = 0.0f;
     
@@ -47,12 +47,12 @@ float BackdrivableController::update(float targetError, float motorAngle, float 
     
     torqueFromChair = CHAIRBACK_WEIGHT_IN_NEWTON * sin(shaftAngle * (PI / 180.0f)) * BAR_CENTROID; // Calculate torque from the bar weight based on current position
     //float torqueRequired = pow(targetError, 3)*0.0153 + 0.1265*pow(targetError, 2)+2.1336*targetError + 1.8911; // Calculate required torque to achieve target position
-    if (targetError > 0) {
-        torqueRequired = 0.1965 * pow(targetError, 2) + 2.7137*targetError; // Calculate required torque to achieve target position
-    } else {
-        torqueRequired = -0.1849 * pow(targetError,2) + 0.4371*targetError; // Calculate required torque to achieve target position
-    }
-    torque = torqueRequired - torqueFromChair; // Calculate the net torque required to achieve target position
+    // if (targetTorque > 0) {
+    //     torqueRequired = 0.1965 * pow(targetError, 2) + 2.7137*targetError; // Calculate required torque to achieve target position
+    // } else {
+    //     torqueRequired = -0.1849 * pow(targetError,2) + 0.4371*targetError; // Calculate required torque to achieve target position
+    // }
+    torque = targetTorque - torqueFromChair; // Calculate the net torque required to achieve target position
     // requiredDisplacement = -0.0001*pow(torque,3) - 0.0007*pow(torque,2) + 0.4253*torque -1.4922; // Calculate the required displacement to achieve the target position
     if (torque < 0) {
         // requiredDisplacement = 0.0027 * pow(torque,2) + 0.3236 * torque; // Calculate the required displacement to achieve the target position
@@ -64,18 +64,25 @@ float BackdrivableController::update(float targetError, float motorAngle, float 
     
     
     // requiredDisplacement += 0.5; // Backlash in spring
-    Serial.print(">Required Torque: ");
-    Serial.println(torque);
+    // Serial.print(">Required Torque: ");
+    // Serial.println(torque);
     Serial.print(">Required Displacement: ");
     Serial.println(requiredDisplacement);
     Serial.print(">Displacement: ");
     Serial.println(error);
+    // Serial.print(">Motor Angle: ");
+    // Serial.println(motorAngle);
+    // Serial.print(">Shaft Angle: ");
+    // Serial.println(shaftAngle);
 
     // if (abs(error) < 0.5 && targetError == 0) { // degrees
     //     error = 0; 
     // }
 
     float positionOutput = PIDController->update(requiredDisplacement, error, dt); // Note: +ve  turn CCW, -ve  turn CW (NEED TO CHECK PRIOR TESTING)
+
+    // Serial.print(">Position Output: ");
+    // Serial.println(positionOutput);
 
     // float feedforward = targetError/DEGREES_PER_AMP; // Feedforward term to assist in reaching target position (value from testing)
 
