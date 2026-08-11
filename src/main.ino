@@ -108,13 +108,11 @@ void loop() {
     if (millis() % 10 == 0) {
 
       float shaftPosition = (readShaftEncoderADC() - zeroShaftPosition) * MAGNETIC_ENCODER_RESOLUTION;  // Current position from shaft encoder
-      Serial.print(">Shaft Position: ");
-      Serial.println(shaftPosition);
       
       float speed = 1.8310546875 * analogRead(SPEED_PIN) - 740;
     
       // float power = controller.update(targetPosition, shaftPosition, dt);
-      float power = backdrivableController.update(0, motorPosition, dt, (readShaftEncoderADC()-zeroShaftPosition)*MAGNETIC_ENCODER_RESOLUTION);
+      float power = backdrivableController.update(0.0, motorPosition, dt, (readShaftEncoderADC()-zeroShaftPosition)*MAGNETIC_ENCODER_RESOLUTION);
       // float power = springController.updateLinear(0.0, motorPosition, dt, shaftPosition);
       // float power = trajectory.followRampTrajectory(shaftPosition, dt, starttime);
 
