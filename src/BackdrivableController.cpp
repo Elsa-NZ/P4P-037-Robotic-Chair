@@ -35,7 +35,7 @@ BackdrivableController::~BackdrivableController() {
 
 float BackdrivableController::update(float targetTorque, float motorAngle, float dt, float shaftAngle) {
     // Update position PID controller
-    float torqueRequired, torqueFromChair, requiredDisplacement, torque = 0.0f;
+    float currenttorque, torqueFromChair, requiredDisplacement, torque = 0.0f;
     
 
     error = motorAngle - shaftAngle; // Calculate the angle error for PID
@@ -61,15 +61,31 @@ float BackdrivableController::update(float targetTorque, float motorAngle, float
         // requiredDisplacement = 0.0096 * pow(torque, 2) + 0.6876 * torque; // Calculate the required displacement to achieve the target position
         requiredDisplacement = -0.0096 * pow(torque,2) + 0.6876 * torque;
     }
+
+    // CODE FOR DATA
+    if (error < 0) {
+        currenttorque = (-0.6876 + sqrt(0.6876 * 0.6876 + 4.0 * 0.0096 * requiredDisplacement))/ (2.0 * 0.0096); // Torque measured from spring
+    } else {
+        currenttorque = (-0.6876 + sqrt(0.6876 * 0.6876 - 4.0 * 0.0096 * requiredDisplacement))/ (2.0 * -0.0096); // Torque measured from spring
+    }
+
+
+    Serial.print(millis());
+    Serial.print(", ");
+    Serial.print(shaftAngle);
+    Serial.print(", ");
+    Serial.print(currenttorque); // Torque measured from spring
+    Serial.print(", ");
+    Serial.println(torque);
     
     
     // requiredDisplacement += 0.5; // Backlash in spring
     // Serial.print(">Required Torque: ");
     // Serial.println(torque);
-    Serial.print(">Required Displacement: ");
-    Serial.println(requiredDisplacement);
-    Serial.print(">Displacement: ");
-    Serial.println(error);
+    // Serial.print(">Required Displacement: ");
+    // Serial.println(requiredDisplacement);
+    // Serial.print(">Displacement: ");
+    // Serial.println(error);
     // Serial.print(">Motor Angle: ");
     // Serial.println(motorAngle);
     // Serial.print(">Shaft Angle: ");

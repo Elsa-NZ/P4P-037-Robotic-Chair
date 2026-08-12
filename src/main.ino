@@ -108,15 +108,7 @@ void loop() {
     if (millis() % 10 == 0) {
 
       float shaftPosition = (readShaftEncoderADC() - zeroShaftPosition) * MAGNETIC_ENCODER_RESOLUTION;  // Current position from shaft encoder
-      
-      // Serial.print(">Motor Position: ");
-      // Serial.println(motorPosition);
-      // Serial.print(">Shaft Position: ");
-      // Serial.println(shaftPosition);
-      // Serial.print(">Difference: ");
-      // Serial.println(motorPosition - shaftPosition);
-
-
+  
       float speed = 1.8310546875 * analogRead(SPEED_PIN) - 740;
     
       // float power = controller.update(targetPosition, shaftPosition, dt);
