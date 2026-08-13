@@ -42,7 +42,7 @@ SpringController::~SpringController() {
 
 float SpringController::updateLinear(float equilibriumPosition, float motorPosition, float dt, float shaftPosition) {
     // Update position PID controller
-
+    float currenttorque, torque = 0.0f;
     float displacement = equilibriumPosition - shaftPosition; // Calculate the angle error for PID
     
     float targetCompression = displacement / COMPRESSION_RATIO; // Calculate the target compression based on the spring's compression ratio
@@ -52,6 +52,8 @@ float SpringController::updateLinear(float equilibriumPosition, float motorPosit
     float compressionOutput = PIDLinearController->update(targetCompression, currentCompression, dt);
 
     float feedforward = kf_linear * (targetCompression / DEGREES_PER_AMP) * (229.5/4); // Feedforward term to assist in reaching target position (value from testing)
+
+    
 
     if (targetCompression < 0) {
         feedforward = feedforward - 25.5;
@@ -70,6 +72,26 @@ float SpringController::updateLinear(float equilibriumPosition, float motorPosit
     } else if (output < -saturationHigh_linear) {
         output = -saturationHigh_linear;
     }
+
+    // CODE FOR DATA
+    if (currentCompression < 0) {
+        currenttorque = (-0.6876 + sqrt(0.6876 * 0.6876 + 4.0 * 0.0096 * currentCompression))/ (2.0 * 0.0096); // Torque measured from spring
+        torque = (-0.6876 + sqrt(0.6876 * 0.6876 + 4.0 * 0.0096 * targetCompression))/ (2.0 * 0.0096); // Torque measured from spring
+    } else {
+        currenttorque = (-0.6876 + sqrt(0.6876 * 0.6876 - 4.0 * 0.0096 * currentCompression))/ (2.0 * -0.0096); // Torque measured from spring
+        torque = (-0.6876 + sqrt(0.6876 * 0.6876 - 4.0 * 0.0096 * targetCompression))/ (2.0 * -0.0096); // Torque measured from spring
+    }
+
+    // if (millis() % 100 == 0) {
+        Serial.print(millis());
+        Serial.print(", ");
+        Serial.print(shaftPosition);
+        Serial.print(", ");
+        Serial.print(currenttorque); // Torque measured from spring
+        Serial.print(", ");
+        Serial.println(torque);
+    // }
+    
 
     return output;
 }

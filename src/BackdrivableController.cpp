@@ -11,7 +11,7 @@ PID* PIDController = nullptr;
 BackdrivableController::BackdrivableController() {
     // Initialize position PID gains
     kp_pos = 53.0f; //53
-    ki_pos = 16.0f; //16
+    ki_pos = 40.0f; //16
     kd_pos = 1.0f; //1 (keep it at 1 to prevent wobbles)
     // Initialize position PID windup and saturation limits
     windupLimit_pos = 200.0f; 
@@ -64,9 +64,9 @@ float BackdrivableController::update(float targetTorque, float motorAngle, float
 
     // CODE FOR DATA
     if (error < 0) {
-        currenttorque = (-0.6876 + sqrt(0.6876 * 0.6876 + 4.0 * 0.0096 * requiredDisplacement))/ (2.0 * 0.0096); // Torque measured from spring
+        currenttorque = (-0.6876 + sqrt(0.6876 * 0.6876 + 4.0 * 0.0096 * error))/ (2.0 * 0.0096); // Torque measured from spring
     } else {
-        currenttorque = (-0.6876 + sqrt(0.6876 * 0.6876 - 4.0 * 0.0096 * requiredDisplacement))/ (2.0 * -0.0096); // Torque measured from spring
+        currenttorque = (-0.6876 + sqrt(0.6876 * 0.6876 - 4.0 * 0.0096 * error))/ (2.0 * -0.0096); // Torque measured from spring
     }
 
 
@@ -82,6 +82,8 @@ float BackdrivableController::update(float targetTorque, float motorAngle, float
     // requiredDisplacement += 0.5; // Backlash in spring
     // Serial.print(">Required Torque: ");
     // Serial.println(torque);
+    // Serial.print(">Current Torque: ");
+    // Serial.println(currenttorque);
     // Serial.print(">Required Displacement: ");
     // Serial.println(requiredDisplacement);
     // Serial.print(">Displacement: ");

@@ -28,7 +28,7 @@
 #define DEGREES_PER_AMP 8.19647
 
 #define CHAIRBACK_WEIGHT_IN_NEWTON 32.40243
-#define BAR_CENTROID 0.19 // in meters (0.28) (0.34)
+#define BAR_CENTROID 0.2 // in meters (0.28) (0.34)
 #define SPRING_CONSTANT 1.05 // in Nm/deg
 
 #define COMPRESSION_RATIO 5.0f // Define the compression ratio for the spring

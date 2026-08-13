@@ -112,8 +112,8 @@ void loop() {
       float speed = 1.8310546875 * analogRead(SPEED_PIN) - 740;
     
       // float power = controller.update(targetPosition, shaftPosition, dt);
-      float power = backdrivableController.update(0.0, motorPosition, dt, shaftPosition);
-      // float power = springController.updateLinear(0.0, motorPosition, dt, shaftPosition);
+      // float power = backdrivableController.update(4.0, motorPosition, dt, shaftPosition);
+      float power = springController.updateLinear(0.0, motorPosition, dt, shaftPosition);
       // float power = trajectory.followRampTrajectory(shaftPosition, dt, starttime);
 
       // Use the output to control the motor (set PWM value)
