@@ -21,15 +21,25 @@ void motorSetup() {
 }
 
 void move(float power) {
-    if (isnan(power) || abs(power) < 0.1*255) { // If power is NaN or below threshold, set to minimum PWM value
+
+    
+
+    if (isnan(power)) { // If power is NaN or below threshold, set to minimum PWM value
         power = 0.1*255; // Set a minimum PWM value to prevent controller error
+    } else if (power > 0) { // If power is below threshold, set to minimum PWM value
+      digitalWrite(DIRECTION_PIN, LOW); // CCW  
+      power += 0.1*255;
     } else if (power < 0) {
       digitalWrite(DIRECTION_PIN, HIGH); // CW
-      power = abs(power);
-    } else {
-      digitalWrite(DIRECTION_PIN, LOW); // CCW
+      power = abs(power - 0.1*255);
     }
 
+    if (power > 255*0.9) { // If power is above threshold, set to maximum PWM value
+        power = 0.9*255; // Set a maximum PWM value to prevent controller error
+    } else if (power < 0.1*255) { // If power is below threshold, set to minimum PWM value
+        power = 0.1*255; // Set a minimum PWM value to prevent controller error
+    }
+    
     // Serial.print("Motor Power: ");
     // Serial.println(power);
 
@@ -38,7 +48,7 @@ void move(float power) {
 }
 
 
-PID homingPID(0.057, 0.18, 0.01, 200, 0.27*255, 0.12*255, 1); // homingPID(kp, ki, kd, integral_windup, pwm_max, pwm_min
+PID homingPID(0.07, 0.066, 0.01, 140, 0.27*255, 0.0, 1); // homingPID(kp, ki, kd, integral_windup, pwm_max, pwm_min // 0.057, 0.18, 0.01, 200, 0.27*255, 0.12*255, 1
 unsigned long previousMillis = 0;
 
 int home() {

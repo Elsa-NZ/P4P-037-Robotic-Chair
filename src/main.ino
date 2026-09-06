@@ -61,8 +61,9 @@ void setup() {
 
 void loop() {
   pinMode(7, OUTPUT);  // Set pin 7 as output for LED indicator
-  float targetPosition = angles[0];  // Set the target position to the first angle in the array
+  float targetPosition = 0;  // Set the target position to the first angle in the array
   // int theta = 0;  // Index for the angles array
+  double lastSpeed = 0;  // Variable to store the last speed for acceleration calculation
   float dt = 0.01f;
 
   float output = 0.0f;
@@ -74,8 +75,12 @@ void loop() {
   bool exportData = false;  // Flag to indicate if data has been exported
   bool exportedData = false;  // Flag to indicate if data has been exported
 
-  move(0);  // Ensure motor is stopped before starting the test
   unsigned long starttime = millis();
+  double currentfreq = 0; // starting frequency 0 Hz
+  double currentphase = 0; // starting phase 0 rad
+
+  move(0);  // Ensure motor is stopped before starting the test
+
   while (readSwitchDIP() == 0b001 || readSwitchDIP() == 0b011 || readSwitchDIP() == 0b101) {  // begin testing when a DIP switch is turned on
 
 
@@ -109,12 +114,33 @@ void loop() {
 
       float shaftPosition = (readShaftEncoderADC() - zeroShaftPosition) * MAGNETIC_ENCODER_RESOLUTION;  // Current position from shaft encoder
   
-      float speed = 1.8310546875 * analogRead(SPEED_PIN) - 740;
-    
-      // float power = controller.update(targetPosition, shaftPosition, dt);
+      float speed = ((constrain(analogRead(SPEED_PIN) * (5.0/1023.0), V_min, V_max) / V_max) * (RPM_max - RPM_min) + RPM_min) * 6.0 / 51.0 ; // Convert analog reading to speed in RPM
+      double acceleration = (speed - lastSpeed) / dt;
+      lastSpeed = speed;
+
+      // generate chirp sweep signal for target position
+      float t = (millis() - starttime) / 1000.0; // time in seconds
+      // float k = (0.5f - 0.1f) / 200.0f; // rate of change of frequency
+      currentfreq = 0.0f + k * t; // sweep from 0.1 Hz to 0.5 Hz over 200 seconds
+      currentphase = currentphase + 2 * PI * currentfreq * dt;
+      targetPosition = amplitude * sin(currentphase); // target position is a sine wave with amplitude of 45 degrees
+
+      float power = controller.update(targetPosition, shaftPosition, dt, currentfreq, currentphase);
       // float power = backdrivableController.update(4.0, motorPosition, dt, shaftPosition);
-      float power = springController.updateLinear(0.0, motorPosition, dt, shaftPosition);
+      // float power = springController.updateLinear(0.0, motorPosition, dt, shaftPosition);
       // float power = trajectory.followRampTrajectory(shaftPosition, dt, starttime);
+
+      Serial.print(">Target Position: ");
+      Serial.println(targetPosition);
+      Serial.print(">Shaft Position: ");
+      Serial.println(shaftPosition);
+      // Serial.print(">Current Velocity: ");
+      // Serial.println(speed);
+      // Serial.print(">Current Acceleration: ");
+      // Serial.println(acceleration);
+
+      Serial.print(">Power Output: ");
+      Serial.println(power);
 
       // Use the output to control the motor (set PWM value)
       move(power);

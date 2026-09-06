@@ -7,7 +7,7 @@ class CascadePosVelController {
 public:
     CascadePosVelController();
     ~CascadePosVelController();
-    float update(float targetPosition, float currentPosition, float dt);
+    float update(float targetPosition, float currentPosition, float dt, float currentFrequency, float currentPhase);
     float getOutput();
 
 private:

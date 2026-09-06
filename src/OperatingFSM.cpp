@@ -95,7 +95,8 @@ void OperatingFSM::controller1() {
     float dt = 0.01f; // 10 ms in seconds
     float targetPosition = 0.0f; // Define your target position here
     float motorPosition = (pulses/(2000.0*51.0))*360.0; // Current position from encoder(); // Read the current position from the shaft
-    float power = controller.update(targetPosition, motorPosition, dt);
+    // MAKE SURE U UPDATE THIS !!
+    float power = controller.update(targetPosition, motorPosition, dt, 0.0f, 0.0f); // Update the controller with the target and current positions
 
      if (power < 0) {
       digitalWrite(DIRECTION_PIN, HIGH); // CW
