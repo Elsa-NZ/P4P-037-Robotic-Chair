@@ -39,8 +39,6 @@ float CascadePosVelController::update(float targetPosition, float currentPositio
     // Serial.println(targetPosition);
     // Serial.print("Current Position: ");
     // Serial.println(currentPosition);
-
-    double marginalOffset = 10.0; // Adjust this value based on your system's characteristics
     
     // Update position PID controller
     // targetPosition = targetPosition - (marginalOffset*(targetPosition/abs(targetPosition))); // Apply the marginal offset to the target position to account for inertia

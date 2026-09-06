@@ -119,19 +119,18 @@ void loop() {
       lastSpeed = speed;
 
       // generate chirp sweep signal for target position
-      float t = (millis() - starttime) / 1000.0; // time in seconds
-      // float k = (0.5f - 0.1f) / 200.0f; // rate of change of frequency
-      currentfreq = 0.0f + k * t; // sweep from 0.1 Hz to 0.5 Hz over 200 seconds
-      currentphase = currentphase + 2 * PI * currentfreq * dt;
-      targetPosition = amplitude * sin(currentphase); // target position is a sine wave with amplitude of 45 degrees
+      // float t = (millis() - starttime) / 1000.0; // time in seconds
+      // currentfreq = 0.0f + k * t; // sweep from 0.1 Hz to 0.5 Hz over 200 seconds (note k is rate of change of frequency in Hz/s)
+      // currentphase = currentphase + 2 * PI * currentfreq * dt;
+      // targetPosition = amplitude * sin(currentphase); // target position is a sine wave with amplitude of 45 degrees
 
-      float power = controller.update(targetPosition, shaftPosition, dt, currentfreq, currentphase);
+      // float power = controller.update(targetPosition, shaftPosition, dt, currentfreq, currentphase);
       // float power = backdrivableController.update(4.0, motorPosition, dt, shaftPosition);
       // float power = springController.updateLinear(0.0, motorPosition, dt, shaftPosition);
-      // float power = trajectory.followRampTrajectory(shaftPosition, dt, starttime);
+      float power = trajectory.followCurveTrajectory(shaftPosition, dt, starttime);
 
-      Serial.print(">Target Position: ");
-      Serial.println(targetPosition);
+      // Serial.print(">Target Position: ");
+      // Serial.println(targetPosition);
       Serial.print(">Shaft Position: ");
       Serial.println(shaftPosition);
       // Serial.print(">Current Velocity: ");
