@@ -50,6 +50,8 @@ void move(float power) {
 
 PID homingPID(0.07, 0.066, 0.01, 140, 0.27*255, 0.0, 1); // homingPID(kp, ki, kd, integral_windup, pwm_max, pwm_min // 0.057, 0.18, 0.01, 200, 0.27*255, 0.12*255, 1
 unsigned long previousMillis = 0;
+int timerStart = 0;
+unsigned long timer = 0;
 
 int home() {
   if (!homingStarted) {
@@ -58,6 +60,8 @@ int home() {
   }
 
   int position = readShaftEncoderADC();
+  // Serial.print(">Shaft Position: ");
+  // Serial.println(position);
 
   // map angular error to pwm range to saturate power
   // homingPID.setSaturationLimits(11.2889365705*log(abs(error))+17.5978355576, 0.1*255); // Set saturation limits for homing PID for range of error values 3-950 and pwm 31-90
@@ -66,14 +70,23 @@ int home() {
   // Serial.print("Speed: ");
   // Serial.println(speed);
 
-  if ((position <= SHAFT_HOME_POSITION + HOME_POSITION_TOLERANCE && position >= SHAFT_HOME_POSITION - HOME_POSITION_TOLERANCE) && abs(speed) < 0.5) { // SOMETHING IS WRONG WITH SPEED
-    homed = true;
-    homingStarted = false;
-    analogWrite(PWM_PIN, 0.1*255);
-    delay(1000); // Allow time for motor to settle
-    pulses = 0; // Reset encoder pulses to zero at home position
-    zeroShaftPosition = readShaftEncoderADC();; // Store the zero shaft position
-    return 1; // Already at home position
+  if ((position <= SHAFT_HOME_POSITION + HOME_POSITION_TOLERANCE && position >= SHAFT_HOME_POSITION - HOME_POSITION_TOLERANCE)) { // SOMETHING IS WRONG WITH SPEED
+    if (timerStart == 0) {
+      timer = millis();
+      timerStart = 1;
+    }
+    
+    if (millis() - timer > 1000) {
+      homed = true;
+      homingStarted = false;
+      analogWrite(PWM_PIN, 0.1*255);
+      delay(1000); // Allow time for motor to settle
+      pulses = 0; // Reset encoder pulses to zero at home position
+      zeroShaftPosition = readShaftEncoderADC();; // Store the zero shaft position
+      return 1; // Already at home position
+    }
+  } else {
+    timerStart = 0; // Reset timer if not at home position
   }
 
   float dt = (millis() - previousMillis) / 1000.0; // Convert to seconds

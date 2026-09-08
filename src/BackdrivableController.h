@@ -16,7 +16,7 @@ private:
     float kp_pos, ki_pos, kd_pos;
     float windupLimit_pos, saturationHigh_pos, saturationLow_pos;
     float output;
-    float error;
+    float displacement;
     float MA_filter(float value);
     float filterdOutput, prevalue1, prevalue2, prevalue3, prevalue4, prevalue5;
 };

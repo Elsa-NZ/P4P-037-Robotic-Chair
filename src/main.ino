@@ -125,23 +125,24 @@ void loop() {
       // targetPosition = amplitude * sin(currentphase); // target position is a sine wave with amplitude of 45 degrees
 
       // float power = controller.update(targetPosition, shaftPosition, dt, currentfreq, currentphase);
-      // float power = backdrivableController.update(4.0, motorPosition, dt, shaftPosition);
+      float power = backdrivableController.update(10.0, motorPosition, dt, shaftPosition);
       // float power = springController.updateLinear(0.0, motorPosition, dt, shaftPosition);
-      float power = trajectory.followCurveTrajectory(shaftPosition, dt, starttime);
+      // float power = trajectory.followCurveTrajectory(shaftPosition, dt, starttime);
 
       // Serial.print(">Target Position: ");
       // Serial.println(targetPosition);
       Serial.print(">Shaft Position: ");
       Serial.println(shaftPosition);
-      // Serial.print(">Current Velocity: ");
-      // Serial.println(speed);
-      // Serial.print(">Current Acceleration: ");
-      // Serial.println(acceleration);
+      // // Serial.print(">Current Velocity: ");
+      // // Serial.println(speed);
+      // // Serial.print(">Current Acceleration: ");
+      // // Serial.println(acceleration);
 
-      Serial.print(">Power Output: ");
-      Serial.println(power);
+      // Serial.print(">Power Output: ");
+      // Serial.println(power);
 
       // Use the output to control the motor (set PWM value)
+
       move(power);
 
       if (shaftPosition < SAFE_MIN || shaftPosition > SAFE_MAX) {
@@ -150,10 +151,11 @@ void loop() {
         digitalWrite(ERROR_LED_PIN, LOW);  // Turn off LED when in safe range
       }
 
+      // UNCOMMENT WHEN U WANT TO FIND SPECIFIC ANGLES
       // if (findInArrayWithTolerance(angles, numAngles, shaftPosition, 1.0)) {  // Check if motor angle has reached one of the specified angles in the angles array
       //   digitalWrite(7, HIGH);  // Turn on LED when target angle reached
-      //   Serial.print("Compression: ");
-      //   Serial.println(motorPosition-shaftPosition);
+      //   // Serial.print("Compression: ");
+      //   // Serial.println(motorPosition-shaftPosition);
       // } else {
       //   digitalWrite(7, LOW);  // Turn off LED when not at target angle
       // }

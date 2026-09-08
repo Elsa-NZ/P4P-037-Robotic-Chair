@@ -13,8 +13,8 @@ PID* TrajectoryControllerVelocity = nullptr;
 
 Trajectory::Trajectory() {
     // Initialize position PID gains
-    kp_pos = 3.0f; 
-    ki_pos = 2.0f; 
+    kp_pos = 5.5f; 
+    ki_pos = 2.5f; 
     kd_pos = 0.1f; 
     // Initialize position PID windup and saturation limits
     windupLimit_pos = 6000.0f; 
@@ -44,7 +44,8 @@ Trajectory::~Trajectory() {
 float Trajectory::followCurveTrajectory(float shaftPosition, float dt, unsigned long time) {
     // Implement the logic for following a curve trajectory
     // This is a placeholder implementation and should be replaced with actual curve-following logic
-    float targetPosition, acceleration, velocity, s, delta = 0.0f; // Define the target position based on the curve trajectory
+    float targetPosition, velocity, s, delta = 0.0f; // Define the target position based on the curve trajectory
+    double acceleration = 0.0f; // Define the acceleration based on the curve trajectory
     float currentPosition = shaftPosition; // Current position from shaft encoder
     long currentTime = millis() - time; // Current time in milliseconds since the start of the trajectory
 
