@@ -14,10 +14,17 @@ PID* TrajectoryControllerVelocity = nullptr;
 Trajectory::Trajectory() {
     // Initialize position PID gains
     kp_pos = 5.5f; 
-    ki_pos = 2.5f; 
+    ki_pos = 5.5f; 
     kd_pos = 0.1f; 
+
+    // Gain scheduling for position PID based on velocity
+    // 35 deg/s: kp = 5.5, ki = 5.5, kd = 0.1
+    // 16.67 deg/s: kp = 4.0, ki = 5.5, kd = 0.1
+    // 9 deg/s: kp = 2.0, ki = 5.5, kd = 0.15
+
+
     // Initialize position PID windup and saturation limits
-    windupLimit_pos = 6000.0f; 
+    windupLimit_pos = 25.0f; 
     saturationHigh_pos = 0.9*255; 
     saturationLow_pos = 0.0*255; 
 
@@ -25,6 +32,7 @@ Trajectory::Trajectory() {
     kp_vel = 0.9f;
     ki_vel = 0.15f;
     kd_vel = 0.0f;
+    
 
     // Initialize velocity PID windup and saturation limits
     windupLimit_vel = 80.0f;
@@ -47,7 +55,7 @@ float Trajectory::followCurveTrajectory(float shaftPosition, float dt, unsigned 
     float targetPosition, velocity, s, delta = 0.0f; // Define the target position based on the curve trajectory
     double acceleration = 0.0f; // Define the acceleration based on the curve trajectory
     float currentPosition = shaftPosition; // Current position from shaft encoder
-    long currentTime = millis() - time; // Current time in milliseconds since the start of the trajectory
+    long currentTime = millis() - time+3500; // Current time in milliseconds since the start of the trajectory
 
     float ka_linear = 0.1f; // Feedforward gain acceleration
     float kv_linear = 0.5f; // Feedforward gain velocity
@@ -55,36 +63,37 @@ float Trajectory::followCurveTrajectory(float shaftPosition, float dt, unsigned 
 
 
 
-    if (currentTime < 1500) {
-        s = (float)currentTime / 1500.0f;
-        targetPosition = 25.0f * (10*s*s*s - 15*s*s*s*s + 6*s*s*s*s*s);
-        velocity = (25.0f / 1500.0f) * (30*s*s - 60*s*s*s + 30*s*s*s*s);
-        acceleration = (25.0f / (1500.0f * 1500.0f)) * (60*s - 180*s*s + 120*s*s*s);
-    } else if (currentTime >= 1500 && currentTime < 3500) {
-        targetPosition = 25.0f; // stay in position for 2 seconds
+    /*if (currentTime < 3000) {
+        s = (float)currentTime / 3000.0f;
+        targetPosition = -50.0f * (10*s*s*s - 15*s*s*s*s + 6*s*s*s*s*s);
+        velocity = (-50.0f / 3000.0f) * (30*s*s - 60*s*s*s + 30*s*s*s*s);
+        acceleration = (-50.0f / (3000.0f * 3000.0f)) * (60*s - 180*s*s + 120*s*s*s);
+    } else if (currentTime >= 3000 && currentTime < 5000) {
+        targetPosition = -50.0f; // stay in position for 2 seconds
         velocity = 0.0f; // No change in position, so velocity is zero
         acceleration = 0.0f; // No change in velocity, so acceleration is zero
-    } else if (currentTime >= 3500 && currentTime < 5500) {
+    } else*/ if (currentTime >= 3500 && currentTime < 5500) {
         delta = -45.0f - 25.0f;
         s = ((float)currentTime - 3500.0f) / 2000.0f;
-        targetPosition = 25.0f + delta * (10*s*s*s - 15*s*s*s*s + 6*s*s*s*s*s);
+        targetPosition = /*25.0f*/ + delta * (10*s*s*s - 15*s*s*s*s + 6*s*s*s*s*s);
         velocity = (delta / 2000.0f) * (30*s*s - 60*s*s*s + 30*s*s*s*s);
         acceleration = (delta / (2000.0f * 2000.0f)) * (60*s - 180*s*s + 120*s*s*s);
     } else if (currentTime >= 5500 && currentTime < 7500) {
-        targetPosition = -45.0f; // stay in position for 2 seconds
+        targetPosition = -70.0f; // stay in position for 2 seconds
         velocity = 0.0f; // No change in position, so velocity is zero
         acceleration = 0.0f; // No change in velocity, so acceleration is zero
-    } else if (currentTime >= 7500 && currentTime < 10500) {
-        delta = 45.0f; // final - initial = 0 - (-45)
-        s = ((float)currentTime - 7500.0f) / 3000.0f;
-        targetPosition = -45.0f + delta * (10*s*s*s - 15*s*s*s*s + 6*s*s*s*s*s);
-        velocity = (delta / 3000.0f) * (30*s*s - 60*s*s*s + 30*s*s*s*s);
-        acceleration = (delta / (3000.0f * 3000.0f)) * (60*s - 180*s*s + 120*s*s*s);
-    } else if (currentTime >= 10500) {
-        targetPosition = 0.0f; // Return to initial position
-        velocity = 0.0f; // No change in position, so velocity is zero
-        acceleration = 0.0f; // No change in velocity, so acceleration is zero
-    }
+    } //else if (currentTime >= 7500 && currentTime < 12500) {
+    //     float time = 5000.0f;
+    //     delta = 45.0f; // final - initial = 0 - (-45)
+    //     s = ((float)currentTime - 7500.0f) / time;
+    //     targetPosition = -45.0f + delta * (10*s*s*s - 15*s*s*s*s + 6*s*s*s*s*s);
+    //     velocity = (delta / time) * (30*s*s - 60*s*s*s + 30*s*s*s*s);
+    //     acceleration = (delta / (time * time)) * (60*s - 180*s*s + 120*s*s*s);
+    // } else if (currentTime >= 12500) {
+    //     targetPosition = 45.0f; // Return to initial position
+    //     velocity = 0.0f; // No change in position, so velocity is zero
+    //     acceleration = 0.0f; // No change in velocity, so acceleration is zero
+    // }
 
     // Update position PID controller
     float position = TrajectoryControllerPosition->update(targetPosition, currentPosition, dt);
@@ -107,6 +116,8 @@ float Trajectory::followCurveTrajectory(float shaftPosition, float dt, unsigned 
         // Serial.print(", ");
         // // Serial.print(">Current Position: ");
         // Serial.println(currentPosition);
+         Serial.print(">Power: ");
+        Serial.println(position + feedforward);
     }
     
     float power = position + feedforward;
@@ -167,3 +178,59 @@ float Trajectory::followRampTrajectory(float shaftPosition, float dt, unsigned l
     return power;
 }
 
+float Trajectory::SCurveTraj(float startPos, float endPos, float travelTime, float dt, unsigned long startTime, float ShaftPosition) {
+    // Implement the logic for following an S-curve trajectory
+    // This is a placeholder implementation and should be replaced with actual S-curve-following logic
+
+
+    float avgVelocity = (endPos - startPos) / travelTime; // Define the velocity based on the S-curve trajectory
+    float delta = endPos - startPos; // Define the change in position based on the S-curve trajectory
+
+    // feedfoward gains:
+    float ka_linear = 0.1f; // Feedforward gain acceleration
+    float kv_linear = 0.5f; // Feedforward gain velocity
+    float ks_linear = 1.25f; // Feedforward gain angle
+
+    // Gain scheduling for position PID based on velocity
+    // kp_pos = 0.1248*avgVelocity + 1.3129;
+    // ki_pos = 5.5;
+    // kd_pos = -0.0016*avgVelocity + 0.1483;
+
+    // kp_pos = -0.0015*delta*delta + 0.1307*delta + 0.6163; //0.0522*avgVelocity + 1.3917
+    // ki_pos = 0.0037*delta + 1.3905;// -0.0103*avgVelocity + 1.4495
+    // kd_pos = 0.0004*delta + 0.1053; //0.002*avgVelocity + 0.0775
+
+    kp_pos = 3.7;
+    ki_pos = 1.0;
+    kd_pos = 0.12;
+
+    TrajectoryControllerPosition->setGains(kp_pos, ki_pos, kd_pos);
+
+    long currentTime = millis() - startTime; // Current time in milliseconds since the start of the trajectory
+
+    float s = ((float)currentTime) / travelTime;
+    float targetPosition, velocity, acceleration = 0.0f; // Define the target position based on the S-curve trajectory
+
+    if (currentTime < travelTime) {
+        targetPosition = startPos + delta * (10*s*s*s - 15*s*s*s*s + 6*s*s*s*s*s);
+        velocity = (delta / travelTime) * (30*s*s - 60*s*s*s + 30*s*s*s*s);
+        acceleration = (delta / (travelTime * travelTime)) * (60*s - 180*s*s + 120*s*s*s);
+    } else {
+        targetPosition = endPos; // stay in position after the trajectory is complete
+        velocity = 0.0f; // No change in position, so velocity is zero
+        acceleration = 0.0f; // No change in velocity, so acceleration is zero
+    }
+
+    Serial.print(">Target Position: ");
+    Serial.println(targetPosition);
+
+    float position = TrajectoryControllerPosition->update(targetPosition, ShaftPosition, dt);
+    double feedforward = 1000000 * ka_linear * acceleration + 1000 * kv_linear * velocity - ks_linear * CHAIRBACK_WEIGHT_IN_NEWTON * sin(targetPosition * (PI / 180.0f)) * BAR_CENTROID; // Feedforward term to assist in reaching target position (value from testing)
+
+    float power = position + feedforward;
+
+    Serial.print(">Power: ");
+    Serial.println(power);
+
+    return power;
+}

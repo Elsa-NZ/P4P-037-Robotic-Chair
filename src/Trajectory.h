@@ -11,6 +11,7 @@ public:
     ~Trajectory();
     float followRampTrajectory(float shaftPosition, float dt, unsigned long time);
     float followCurveTrajectory(float shaftPosition, float dt, unsigned long time);
+    float SCurveTraj(float startPos, float endPos, float travelTime, float dt, unsigned long startTime, float ShaftPosition);
 
 private:
     float kp_pos, ki_pos, kd_pos, kp_vel, ki_vel, kd_vel;

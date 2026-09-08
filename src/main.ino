@@ -125,9 +125,16 @@ void loop() {
       // targetPosition = amplitude * sin(currentphase); // target position is a sine wave with amplitude of 45 degrees
 
       // float power = controller.update(targetPosition, shaftPosition, dt, currentfreq, currentphase);
-      float power = backdrivableController.update(10.0, motorPosition, dt, shaftPosition);
+      // float power = backdrivableController.update(0.0, motorPosition, dt, shaftPosition);
       // float power = springController.updateLinear(0.0, motorPosition, dt, shaftPosition);
       // float power = trajectory.followCurveTrajectory(shaftPosition, dt, starttime);
+      float power = 0.0f;
+      
+      if (millis() - starttime < 5000) {
+        power = trajectory.SCurveTraj(0.0f, -59.0f, 2000.0f, dt, starttime, shaftPosition);        
+      }// else if (millis() - starttime >= 5000 && millis()) {
+      //   power = trajectory.SCurveTraj(30.0f, -50.0f, 6000.0f, dt, starttime+5000, shaftPosition);
+      // }
 
       // Serial.print(">Target Position: ");
       // Serial.println(targetPosition);
