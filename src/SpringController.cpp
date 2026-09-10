@@ -29,7 +29,7 @@ SpringController::SpringController() {
 
     // Initialize nonlinear PID windup and saturation limits
     saturationHigh_nonlinear = 0.9f * 255.0f;
-    saturationLow_nonlinear = 0.1f * 255.0f;
+    saturationLow_nonlinear = 0.0f * 255.0f;
 
     // Create PID controllers for nonlinear control
     PIDNonlinearController = new PID(kp_nonlinear, ki_nonlinear, kd_nonlinear, 0, saturationHigh_nonlinear, saturationLow_nonlinear, 0);
@@ -40,12 +40,20 @@ SpringController::~SpringController() {
     delete PIDLinearController;
 }
 
-float SpringController::updateLinear(float equilibriumPosition, float motorPosition, float dt, float shaftPosition) {
+float SpringController::updateLinear(float springConstant, float equilibriumPosition, float motorPosition, float dt, float shaftPosition) {
     // Update position PID controller
-    float currenttorque, torque = 0.0f;
+    float currenttorque, torque, displacementCorrection = 0.0f;
     float displacement = equilibriumPosition - shaftPosition; // Calculate the angle error for PID
+
+    float torqueFromChair = CHAIRBACK_WEIGHT_IN_NEWTON * sin(shaftPosition * (PI / 180.0f)) * BAR_CENTROID;
+
+    if (torqueFromChair < 0) {
+        displacementCorrection = 0.0096 * pow(torqueFromChair, 2) + 0.6876 * torqueFromChair; 
+    } else {
+        displacementCorrection = 0.0096 * pow(torqueFromChair, 2) + 0.6876 * torqueFromChair; //displacementCorrection = -0.0027 * pow(torqueFromChair,2) + 0.3236 * torqueFromChair; 
+    }
     
-    float targetCompression = displacement / COMPRESSION_RATIO; // Calculate the target compression based on the spring's compression ratio
+    float targetCompression = displacement * springConstant - displacementCorrection; // Calculate the target compression based on the spring's compression ratio
 
     float currentCompression = (motorPosition - shaftPosition); // Calculate the current compression
 
@@ -55,41 +63,46 @@ float SpringController::updateLinear(float equilibriumPosition, float motorPosit
 
     
 
-    if (targetCompression < 0) {
-        feedforward = feedforward - 25.5;
-    } else {
-        feedforward = feedforward + 25.5;
-    }
+    // if (targetCompression < 0) {
+    //     feedforward = feedforward - 25.5;
+    // } else {
+    //     feedforward = feedforward + 25.5;
+    // }
 
     output = compressionOutput + feedforward;
 
-    if (output > saturationHigh_linear) {
-        output = saturationHigh_linear;
-    } else if (output < saturationLow_linear && output > 0) {
-        output = saturationLow_linear;
-    } else if (output > -saturationLow_linear && output < 0) {
-        output = -saturationLow_linear;
-    } else if (output < -saturationHigh_linear) {
-        output = -saturationHigh_linear;
-    }
+    // if (output > saturationHigh_linear) {
+    //     output = saturationHigh_linear;
+    // } else if (output < saturationLow_linear && output > 0) {
+    //     output = saturationLow_linear;
+    // } else if (output > -saturationLow_linear && output < 0) {
+    //     output = -saturationLow_linear;
+    // } else if (output < -saturationHigh_linear) {
+    //     output = -saturationHigh_linear;
+    // }
+
+    Serial.print(">Target Compression: ");
+    Serial.println(targetCompression);
+    Serial.print(">Current Compression: ");
+    Serial.println(currentCompression);
 
     // CODE FOR DATA
-    if (currentCompression < 0) {
-        currenttorque = (-0.6876 + sqrt(0.6876 * 0.6876 + 4.0 * 0.0096 * currentCompression))/ (2.0 * 0.0096); // Torque measured from spring
-        torque = (-0.6876 + sqrt(0.6876 * 0.6876 + 4.0 * 0.0096 * targetCompression))/ (2.0 * 0.0096); // Torque measured from spring
-    } else {
-        currenttorque = (-0.6876 + sqrt(0.6876 * 0.6876 - 4.0 * 0.0096 * currentCompression))/ (2.0 * -0.0096); // Torque measured from spring
-        torque = (-0.6876 + sqrt(0.6876 * 0.6876 - 4.0 * 0.0096 * targetCompression))/ (2.0 * -0.0096); // Torque measured from spring
-    }
+    // if (currentCompression < 0) {
+    //     currenttorque = (-0.6876 + sqrt(0.6876 * 0.6876 + 4.0 * 0.0096 * currentCompression))/ (2.0 * 0.0096); // Torque measured from spring
+    //     torque = (-0.6876 + sqrt(0.6876 * 0.6876 + 4.0 * 0.0096 * targetCompression))/ (2.0 * 0.0096); // Torque measured from spring
+    // } else {
+    //     currenttorque = (-0.6876 + sqrt(0.6876 * 0.6876 - 4.0 * 0.0096 * currentCompression))/ (2.0 * -0.0096); // Torque measured from spring
+    //     torque = (-0.6876 + sqrt(0.6876 * 0.6876 - 4.0 * 0.0096 * targetCompression))/ (2.0 * -0.0096); // Torque measured from spring
+    // }
 
     // if (millis() % 100 == 0) {
-        Serial.print(millis());
-        Serial.print(", ");
-        Serial.print(shaftPosition);
-        Serial.print(", ");
-        Serial.print(currenttorque); // Torque measured from spring
-        Serial.print(", ");
-        Serial.println(torque);
+        // Serial.print(millis());
+        // Serial.print(", ");
+        // Serial.print(shaftPosition);
+        // Serial.print(", ");
+        // Serial.print(currenttorque); // Torque measured from spring
+        // Serial.print(", ");
+        // Serial.println(torque);
     // }
     
 

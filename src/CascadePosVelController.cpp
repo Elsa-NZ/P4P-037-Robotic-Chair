@@ -7,9 +7,9 @@ PID* velocityPID = nullptr;
 
 CascadePosVelController::CascadePosVelController() {
     // Initialize position PID gains
-    kp_pos = 3.0f; // 1.5
-    ki_pos = 2.0f; // 0.1
-    kd_pos = 0.1f; // 0.2
+    kp_pos = 3.5;
+    ki_pos = 1.2;
+    kd_pos = 0.12;
     // Initialize position PID windup and saturation limits
     windupLimit_pos = 6000.0f; 
     saturationHigh_pos = 0.9*255; 
@@ -59,17 +59,17 @@ float CascadePosVelController::update(float targetPosition, float currentPositio
 
     // Store the final output for retrieval
     // output = velocityOutput;
-    float ka_linear = 0.1f; // Feedforward gain acceleration
-    float kv_linear = 0.5f; // Feedforward gain velocity
+    float ka_linear = 0.09f; // Feedforward gain acceleration
+    float kv_linear = 0.4f; // Feedforward gain velocity
     float ks_linear = 1.25f; // Feedforward gain angle
 
     double velocity = 2 * PI * currentFrequency * amplitude * cos(currentPhase); // Calculate the velocity based on the current frequency and phase
     double acceleration = amplitude * (2*PI*k*cos(currentPhase)-pow(2*PI*currentFrequency, 2)*sin(currentPhase)); // Calculate the acceleration based on the current frequency and phase
     
-    Serial.print(">Target Velocity: ");
-    Serial.println(velocity);
-    Serial.print(">Target Acceleration: ");
-    Serial.println(acceleration);
+    // Serial.print(">Target Velocity: ");
+    // Serial.println(velocity);
+    // Serial.print(">Target Acceleration: ");
+    // Serial.println(acceleration);
 
 
     // double feedforward = ka_linear * acceleration + kv_linear * velocity + ks_linear * (velocity/abs(velocity)) - sin(PI*targetPosition/180.0)*15.0; // Feedforward term to assist in reaching target position (value from testing)
@@ -82,10 +82,10 @@ float CascadePosVelController::update(float targetPosition, float currentPositio
     //     positionOutput -= 22.5;
     // }
 
-    Serial.print(">Feedforward: ");
-    Serial.println(feedforward);
+    // Serial.print(">Feedforward: ");
+    // Serial.println(feedforward);
     // float feedforward = ka_linear * 
-    output = positionOutput + feedforward; // Use position output without feedfoward
+    output = positionOutput + feedforward*0; // Use position output without feedfoward
 
     return output;
 }

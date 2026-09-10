@@ -24,7 +24,7 @@ Trajectory::Trajectory() {
 
 
     // Initialize position PID windup and saturation limits
-    windupLimit_pos = 25.0f; 
+    windupLimit_pos = 30.0f; 
     saturationHigh_pos = 0.9*255; 
     saturationLow_pos = 0.0*255; 
 
@@ -165,15 +165,15 @@ float Trajectory::followRampTrajectory(float shaftPosition, float dt, unsigned l
     // Serial.print(">Target Position: ");
     //print data every 100ms for analysis
     
-    if (currentTime - lastTime >= 100) {
-        lastTime = currentTime;
-        Serial.print(currentTime);
-        Serial.print(", ");
-        Serial.print(targetPosition);
-        Serial.print(", ");
-        // Serial.print(">Current Position: ");
-        Serial.println(currentPosition);
-    }
+    // if (currentTime - lastTime >= 100) {
+    //     lastTime = currentTime;
+    //     Serial.print(currentTime);
+    //     Serial.print(", ");
+    //     Serial.print(targetPosition);
+    //     Serial.print(", ");
+    //     // Serial.print(">Current Position: ");
+    //     Serial.println(currentPosition);
+    // }
     
     return power;
 }
@@ -183,25 +183,27 @@ float Trajectory::SCurveTraj(float startPos, float endPos, float travelTime, flo
     // This is a placeholder implementation and should be replaced with actual S-curve-following logic
 
 
-    float avgVelocity = (endPos - startPos) / travelTime; // Define the velocity based on the S-curve trajectory
+
+    float avgVelocity = abs((endPos - startPos) / (travelTime/1000.0)); // Define the velocity based on the S-curve trajectory
     float delta = endPos - startPos; // Define the change in position based on the S-curve trajectory
 
     // feedfoward gains:
-    float ka_linear = 0.1f; // Feedforward gain acceleration
-    float kv_linear = 0.5f; // Feedforward gain velocity
+    float ka_linear = 0.09f; // Feedforward gain acceleration
+    float kv_linear = 0.4f; // Feedforward gain velocity
     float ks_linear = 1.25f; // Feedforward gain angle
 
     // Gain scheduling for position PID based on velocity
-    // kp_pos = 0.1248*avgVelocity + 1.3129;
-    // ki_pos = 5.5;
-    // kd_pos = -0.0016*avgVelocity + 0.1483;
+    // kp_pos = 0.0994*avgVelocity + 0.8363;
+    // kp_pos = -0.0018*avgVelocity*avgVelocity + 0.1806*avgVelocity + 0.1606;
+    // ki_pos = -0.013*avgVelocity + 1.4309;
+    // kd_pos = 0.0015*avgVelocity + 0.0816;
 
     // kp_pos = -0.0015*delta*delta + 0.1307*delta + 0.6163; //0.0522*avgVelocity + 1.3917
     // ki_pos = 0.0037*delta + 1.3905;// -0.0103*avgVelocity + 1.4495
     // kd_pos = 0.0004*delta + 0.1053; //0.002*avgVelocity + 0.0775
 
-    kp_pos = 3.7;
-    ki_pos = 1.0;
+    kp_pos = 3.5;
+    ki_pos = 1.2;
     kd_pos = 0.12;
 
     TrajectoryControllerPosition->setGains(kp_pos, ki_pos, kd_pos);
@@ -229,8 +231,20 @@ float Trajectory::SCurveTraj(float startPos, float endPos, float travelTime, flo
 
     float power = position + feedforward;
 
-    Serial.print(">Power: ");
-    Serial.println(power);
+    // Serial.print(">Power: ");
+    // Serial.println(power);
+    // Serial.print(">Feedforward: ");
+    // Serial.println(feedforward);
+    // Serial.print(">Position Output: ");
+    // Serial.println(position);   
+    // // Serial.print(">Kp: ");
+    // // Serial.println(kp_pos);
+    // // Serial.print(">Ki: ");
+    // // Serial.println(ki_pos);
+    // // Serial.print(">Kd: ");
+    // // Serial.println(kd_pos);
+    // Serial.print(">Velocity: ");
+    // Serial.println(avgVelocity);
 
     return power;
 }

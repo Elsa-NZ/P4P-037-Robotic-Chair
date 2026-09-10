@@ -7,7 +7,7 @@ class SpringController {
 public:
     SpringController();
     ~SpringController();
-    float updateLinear(float equilibriumPosition, float motorPosition, float dt, float shaftPosition);
+    float updateLinear(float springConstant, float equilibriumPosition, float motorPosition, float dt, float shaftPosition);
     float updateNonlinear(float targetPosition, float currentPosition, float dt, float magneticEncoderPosition);
     float getOutput();
     float getError();

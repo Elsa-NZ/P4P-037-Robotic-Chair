@@ -62,6 +62,7 @@ void setup() {
 void loop() {
   pinMode(7, OUTPUT);  // Set pin 7 as output for LED indicator
   float targetPosition = 0;  // Set the target position to the first angle in the array
+  float targetTorque = 0;  // Set the target torque to the first angle in the array
   // int theta = 0;  // Index for the angles array
   double lastSpeed = 0;  // Variable to store the last speed for acceleration calculation
   float dt = 0.01f;
@@ -80,6 +81,10 @@ void loop() {
   double currentphase = 0; // starting phase 0 rad
 
   move(0);  // Ensure motor is stopped before starting the test
+
+  float startPosition1 = 0.0f;
+  float startPosition2 = 0.0f;
+  float startPosition3 = 0.0f;
 
   while (readSwitchDIP() == 0b001 || readSwitchDIP() == 0b011 || readSwitchDIP() == 0b101) {  // begin testing when a DIP switch is turned on
 
@@ -119,27 +124,44 @@ void loop() {
       lastSpeed = speed;
 
       // generate chirp sweep signal for target position
-      // float t = (millis() - starttime) / 1000.0; // time in seconds
-      // currentfreq = 0.0f + k * t; // sweep from 0.1 Hz to 0.5 Hz over 200 seconds (note k is rate of change of frequency in Hz/s)
-      // currentphase = currentphase + 2 * PI * currentfreq * dt;
-      // targetPosition = amplitude * sin(currentphase); // target position is a sine wave with amplitude of 45 degrees
+      float t = (millis() - starttime) / 1000.0 - 5.0; // time in seconds
+      
 
       // float power = controller.update(targetPosition, shaftPosition, dt, currentfreq, currentphase);
       // float power = backdrivableController.update(0.0, motorPosition, dt, shaftPosition);
-      // float power = springController.updateLinear(0.0, motorPosition, dt, shaftPosition);
+      // float power = springController.updateLinear(0.3, targetPosition, motorPosition, dt, shaftPosition);
       // float power = trajectory.followCurveTrajectory(shaftPosition, dt, starttime);
       float power = 0.0f;
       
-      if (millis() - starttime < 5000) {
-        power = trajectory.SCurveTraj(0.0f, -59.0f, 2000.0f, dt, starttime, shaftPosition);        
-      }// else if (millis() - starttime >= 5000 && millis()) {
-      //   power = trajectory.SCurveTraj(30.0f, -50.0f, 6000.0f, dt, starttime+5000, shaftPosition);
+      // if (millis() - starttime < 7000) {
+      //   power = trajectory.SCurveTraj(0.0f, -60.0f, 6000.0f, dt, starttime, shaftPosition);  
+      //   startPosition1 = shaftPosition;  // Store the starting position for the next trajectory
+      // } else if (millis() - starttime >= 7000 && millis() - starttime < 9500) {
+      //   power = trajectory.SCurveTraj(startPosition1, 10.0f, 1500.0f, dt, starttime+7000, shaftPosition);
+      //   startPosition2 = shaftPosition;  // Store the starting position for the next trajectory
+      // } else if (millis() - starttime >= 9500 && millis() - starttime < 11000) {
+      //   power = trajectory.SCurveTraj(startPosition2, 15.0f, 500.0f, dt, starttime+9500, shaftPosition);
+      //   startPosition3 = shaftPosition;  // Store the starting position for the next trajectory
+      // } else if (millis() - starttime >= 11000) {
+      //   power = trajectory.SCurveTraj(startPosition3, -10.0f, 1000.0f, dt, starttime+11000, shaftPosition);
       // }
+
+      if (millis() - starttime < 5000) {
+        power = backdrivableController.update(6.5, motorPosition, dt, shaftPosition);   // Store the starting position for the next trajectory
+      } else if (millis() - starttime >= 5000) {
+        currentfreq = 0.0f + k * t; 
+        currentphase = currentphase + 2 * PI * currentfreq * dt;
+        targetPosition = amplitude * sin(currentphase); // target position is a sine wave with amplitude of 45 degrees
+        targetTorque = amplitude * sin(currentphase) + 6.5f; // target position is a sine wave with amplitude of 45 degrees
+        power = backdrivableController.update(targetTorque, motorPosition, dt, shaftPosition);
+      } 
 
       // Serial.print(">Target Position: ");
       // Serial.println(targetPosition);
-      Serial.print(">Shaft Position: ");
-      Serial.println(shaftPosition);
+      // Serial.print(">Shaft Position: ");
+      // Serial.println(shaftPosition);
+      // Serial.print(">Equilibrium Position: ");
+      // Serial.println(targetPosition);
       // // Serial.print(">Current Velocity: ");
       // // Serial.println(speed);
       // // Serial.print(">Current Acceleration: ");

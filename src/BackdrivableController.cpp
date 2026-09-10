@@ -60,12 +60,13 @@ float BackdrivableController::update(float targetTorque, float motorAngle, float
     } else {
         // requiredDisplacement = 0.0096 * pow(torque, 2) + 0.6876 * torque; // Calculate the required displacement to achieve the target position
         // requiredDisplacement = -0.0096 * pow(torque,2) + 0.3876 * torque; //requiredDisplacement = -0.0096 * pow(torque,2) + 0.6876 * torque;
-        requiredDisplacement = -0.0027 * pow(torque,2) + 0.3236 * torque; //requiredDisplacement = -0.0096 * pow(torque,2) + 0.6876 * torque;
+        //requiredDisplacement = -0.0027 * pow(torque,2) + 0.3236 * torque; //requiredDisplacement = -0.0096 * pow(torque,2) + 0.6876 * torque;
+        requiredDisplacement = -0.0096 * pow(torque, 2) + 0.6876 * torque;
     }
 
     // CODE FOR DATA
     if (displacement < 0) {
-        currenttorque = (-0.6876 + sqrt(0.6876 * 0.6876 + 4.0 * 0.0096 * displacement))/ (2.0 * 0.0096); // Torque measured from spring
+        currenttorque = (-0.6876 + sqrt(0.6876 * 0.6876 + 4.0 * 0.0096 * displacement))/ (2.0 * 0.0096); // Quadratic formula to calculate the torque from the spring based on the current displacement
     } else {
         currenttorque = (-0.6876 + sqrt(0.6876 * 0.6876 - 4.0 * 0.0096 * displacement))/ (2.0 * -0.0096); // Torque measured from spring
     }
@@ -80,10 +81,10 @@ float BackdrivableController::update(float targetTorque, float motorAngle, float
     // Serial.println(torque);
     
     // requiredDisplacement += 0.5; // Backlash in spring
-    // Serial.print(">Required Torque: ");
-    // Serial.println(torque);
-    // Serial.print(">Current Torque: ");
-    // Serial.println(currenttorque);
+    Serial.print(">Required Torque: ");
+    Serial.println(torque);
+    Serial.print(">Current Torque: ");
+    Serial.println(currenttorque);
     // Serial.print(">Required Displacement: ");
     // Serial.println(requiredDisplacement);
     // Serial.print(">Displacement: ");
@@ -120,22 +121,22 @@ float BackdrivableController::update(float targetTorque, float motorAngle, float
     // output = MA_filter(output); // Apply moving average filter to the output
 
     // print every 500ms
-    if (millis() % 50 < 10) {
-        // Serial.print(">Required Torque: ");
-        // Serial.println(torque);
-        // Serial.print(">Current Torque: ");
-        // Serial.println(currenttorque);
-        Serial.print(">Required Displacement: ");
-        Serial.println(requiredDisplacement);
-        Serial.print(">Displacement: ");
-        Serial.println(displacement);
-        // Serial.print(">Motor Angle: ");
-        // Serial.println(motorAngle);
-        // Serial.print(">Shaft Angle: ");
-        // Serial.println(shaftAngle);
-        Serial.print(">Output: ");
-        Serial.println(output);
-    }
+    // if (millis() % 50 < 10) {
+    //     // Serial.print(">Required Torque: ");
+    //     // Serial.println(torque);
+    //     // Serial.print(">Current Torque: ");
+    //     // Serial.println(currenttorque);
+    //     Serial.print(">Required Displacement: ");
+    //     Serial.println(requiredDisplacement);
+    //     Serial.print(">Displacement: ");
+    //     Serial.println(displacement);
+    //     // Serial.print(">Motor Angle: ");
+    //     // Serial.println(motorAngle);
+    //     // Serial.print(">Shaft Angle: ");
+    //     // Serial.println(shaftAngle);
+    //     Serial.print(">Output: ");
+    //     Serial.println(output);
+    // }
 
     return output;
 }

@@ -10,7 +10,7 @@
 // #define ON_OFF_BUTTON 8
 
 #define SHAFT_HOME_POSITION 1562.0f //2048.0f, 1531.0f, 1486.0f, 1490.0f
-#define HOME_POSITION_TOLERANCE 10.0f
+#define HOME_POSITION_TOLERANCE 5.0f
 #define MAGNETIC_ENCODER_RESOLUTION 0.087890625f
 
 #define ENABLE_SWITCH_PIN 6
@@ -36,8 +36,8 @@
 #define MOTOR_POSITION_FILTER_BUFFER_SIZE 1 // Define the size of the moving average buffer for motor position
 
 // Definitions for feedforward control parameters
-#define amplitude 35.0f // Amplitude of the sine wave for feedforward control
-#define k (0.5f - 0.0f) / 100.0f // Rate of change of frequency for the chirp sweep signal
+#define amplitude 6.5f // Amplitude of the sine wave for feedforward control
+#define k (0.5f - 0.0f) / 60.0f // Rate of change of frequency for the chirp sweep signal
 
 // Definitions for speed cals
 #define V_min 0.0f // Minimum voltage for speed calculation
