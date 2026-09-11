@@ -124,14 +124,17 @@ void loop() {
       lastSpeed = speed;
 
       // generate chirp sweep signal for target position
-      float t = (millis() - starttime) / 1000.0 - 5.0; // time in seconds
-      
+      // float t = (millis() - starttime) / 1000.0; // time in seconds
+      // currentfreq = 0.0f + k * t; 
+      // currentphase = currentphase + 2 * PI * currentfreq * dt;
+      // targetPosition = amplitude * sin(currentphase); // target position is a sine wave with amplitude of 45 degrees
+      // targetTorque = amplitude * sin(currentphase); // target position is a sine wave with amplitude of 45 degrees
 
       // float power = controller.update(targetPosition, shaftPosition, dt, currentfreq, currentphase);
-      // float power = backdrivableController.update(0.0, motorPosition, dt, shaftPosition);
+      float power = backdrivableController.update(6.5, motorPosition, dt, shaftPosition);
       // float power = springController.updateLinear(0.3, targetPosition, motorPosition, dt, shaftPosition);
       // float power = trajectory.followCurveTrajectory(shaftPosition, dt, starttime);
-      float power = 0.0f;
+      // float power = 0.0f;
       
       // if (millis() - starttime < 7000) {
       //   power = trajectory.SCurveTraj(0.0f, -60.0f, 6000.0f, dt, starttime, shaftPosition);  
@@ -146,20 +149,29 @@ void loop() {
       //   power = trajectory.SCurveTraj(startPosition3, -10.0f, 1000.0f, dt, starttime+11000, shaftPosition);
       // }
 
-      if (millis() - starttime < 5000) {
-        power = backdrivableController.update(6.5, motorPosition, dt, shaftPosition);   // Store the starting position for the next trajectory
-      } else if (millis() - starttime >= 5000) {
-        currentfreq = 0.0f + k * t; 
-        currentphase = currentphase + 2 * PI * currentfreq * dt;
-        targetPosition = amplitude * sin(currentphase); // target position is a sine wave with amplitude of 45 degrees
-        targetTorque = amplitude * sin(currentphase) + 6.5f; // target position is a sine wave with amplitude of 45 degrees
-        power = backdrivableController.update(targetTorque, motorPosition, dt, shaftPosition);
-      } 
+      // if (millis() - starttime < 5000) {
+      //   power = backdrivableController.update(6.5, motorPosition, dt, shaftPosition);   // Store the starting position for the next trajectory
+      // } else if (millis() - starttime >= 5000) {
+      //   
+      //   power = backdrivableController.update(targetTorque, motorPosition, dt, shaftPosition);
+      // } 
+
+      // float springConst = 0.3;
+
+      // if (millis() - starttime < 7000) {
+      //   power = springController.SCurveTraj(springConst, 0.0f, -60.0f, 6000.0f, dt, starttime, motorPosition, shaftPosition);  
+      // } else if (millis() - starttime >= 7000 && millis() - starttime < 9500) {
+      //   power = springController.SCurveTraj(springConst, -60.0f, 10.0f, 1500.0f, dt, starttime+7000, motorPosition, shaftPosition);
+      // } else if (millis() - starttime >= 9500 && millis() - starttime < 11000) {
+      //   power = springController.SCurveTraj(springConst, 10.0f, 15.0f, 500.0f, dt, starttime+9500, motorPosition, shaftPosition);
+      // } else if (millis() - starttime >= 11000) {
+      //   power = springController.SCurveTraj(springConst, 15.0f, -10.0f, 1000.0f, dt, starttime+11000, motorPosition, shaftPosition);
+      // }
 
       // Serial.print(">Target Position: ");
       // Serial.println(targetPosition);
-      // Serial.print(">Shaft Position: ");
-      // Serial.println(shaftPosition);
+      Serial.print(">Shaft Position: ");
+      Serial.println(shaftPosition);
       // Serial.print(">Equilibrium Position: ");
       // Serial.println(targetPosition);
       // // Serial.print(">Current Velocity: ");

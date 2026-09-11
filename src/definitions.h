@@ -36,8 +36,8 @@
 #define MOTOR_POSITION_FILTER_BUFFER_SIZE 1 // Define the size of the moving average buffer for motor position
 
 // Definitions for feedforward control parameters
-#define amplitude 6.5f // Amplitude of the sine wave for feedforward control
-#define k (0.5f - 0.0f) / 60.0f // Rate of change of frequency for the chirp sweep signal
+#define amplitude 15.0f // Amplitude of the sine wave for feedforward control //15 for spring, 15 and 35 for position, 1,3, 4.29, 6.5 for torque
+#define k (0.5f - 0.0f) / 60.0f // Rate of change of frequency for the chirp sweep signal 
 
 // Definitions for speed cals
 #define V_min 0.0f // Minimum voltage for speed calculation

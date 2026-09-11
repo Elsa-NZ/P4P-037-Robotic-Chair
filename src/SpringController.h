@@ -9,6 +9,7 @@ public:
     ~SpringController();
     float updateLinear(float springConstant, float equilibriumPosition, float motorPosition, float dt, float shaftPosition);
     float updateNonlinear(float targetPosition, float currentPosition, float dt, float magneticEncoderPosition);
+    float SCurveTraj(float springConstant, float startPos, float endPos, float travelTime, float dt, unsigned long startTime, float motorPosition, float shaftPosition);
     float getOutput();
     float getError();
 

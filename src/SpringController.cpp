@@ -69,7 +69,7 @@ float SpringController::updateLinear(float springConstant, float equilibriumPosi
     //     feedforward = feedforward + 25.5;
     // }
 
-    output = compressionOutput + feedforward;
+    output = compressionOutput + feedforward*0;
 
     // if (output > saturationHigh_linear) {
     //     output = saturationHigh_linear;
@@ -131,6 +131,30 @@ float SpringController::updateNonlinear(float targetPosition, float currentPosit
 
     return output;
 }
+
+float SpringController::SCurveTraj(float springConstant, float startPos, float endPos, float travelTime, float dt, unsigned long startTime, float motorPosition, float shaftPosition) {
+    // Implement the logic for following an S-curve trajectory
+    // This is a placeholder implementation and should be replaced with actual S-curve-following logic
+
+    float delta = endPos - startPos; // Define the change in position based on the S-curve trajectory
+
+    long currentTime = millis() - startTime; // Current time in milliseconds since the start of the trajectory
+
+    float s = ((float)currentTime) / travelTime;
+    float equilibriumPosition = 0.0f; // Define the target position based on the S-curve trajectory
+
+    if (currentTime < travelTime) {
+        equilibriumPosition = startPos + delta * (10*s*s*s - 15*s*s*s*s + 6*s*s*s*s*s);
+    } else {
+        equilibriumPosition = endPos; // stay in position after the trajectory is complete
+    }
+
+    Serial.print(">Equilibrium Position: ");
+    Serial.println(equilibriumPosition);
+
+    return updateLinear(springConstant, equilibriumPosition, motorPosition, dt, shaftPosition); // Update the linear controller with the new equilibrium position
+}
+
 
 float SpringController::getOutput() {
     return output;
