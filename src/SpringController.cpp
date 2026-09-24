@@ -46,20 +46,21 @@ float SpringController::updateLinear(float springConstant, float equilibriumPosi
     float displacement = equilibriumPosition - shaftPosition; // Calculate the angle error for PID
 
     float torqueFromChair = CHAIRBACK_WEIGHT_IN_NEWTON * sin(shaftPosition * (PI / 180.0f)) * BAR_CENTROID;
-
-    if (torqueFromChair < 0) {
-        displacementCorrection = 0.0096 * pow(torqueFromChair, 2) + 0.6876 * torqueFromChair; 
-    } else {
-        displacementCorrection = 0.0096 * pow(torqueFromChair, 2) + 0.6876 * torqueFromChair; //displacementCorrection = -0.0027 * pow(torqueFromChair,2) + 0.3236 * torqueFromChair; 
-    }
     
-    float targetCompression = displacement * springConstant - displacementCorrection; // Calculate the target compression based on the spring's compression ratio
+    float targetTorque = displacement * springConstant - torqueFromChair; // Calculate the target compression based on the spring's compression ratio
+    float targetCompression = 0.0f;
+
+    if (targetTorque < 0) {
+        targetCompression = 0.0096 * pow(targetTorque, 2) + 0.6876 * targetTorque; 
+    } else {
+        targetCompression = 0.0096 * pow(targetTorque, 2) + 0.6876 * targetTorque; //displacementCorrection = -0.0027 * pow(torqueFromChair,2) + 0.3236 * torqueFromChair; 
+    }
 
     float currentCompression = (motorPosition - shaftPosition); // Calculate the current compression
 
     float compressionOutput = PIDLinearController->update(targetCompression, currentCompression, dt);
 
-    float feedforward = kf_linear * (targetCompression / DEGREES_PER_AMP) * (229.5/4); // Feedforward term to assist in reaching target position (value from testing)
+    float feedforward = kf_linear * targetTorque / TORQUE_CONSTANT; // Feedforward term to assist in reaching target position (value from testing)
 
     
 

@@ -25,7 +25,7 @@
 #define SAFE_MIN -45.0f // Minimum safe position in degrees
 #define SAFE_MAX 25.0f  // Maximum safe position in degrees
 
-#define DEGREES_PER_AMP 8.19647
+#define TORQUE_CONSTANT 0.147 // Nm/A
 
 #define CHAIRBACK_WEIGHT_IN_NEWTON 32.40243
 #define BAR_CENTROID 0.17 // in meters (0.28) (0.34) (OG: 0.2)
