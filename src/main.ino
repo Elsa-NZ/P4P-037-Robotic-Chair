@@ -124,15 +124,15 @@ void loop() {
       lastSpeed = speed;
 
       // generate chirp sweep signal for target position
-      // float t = (millis() - starttime) / 1000.0; // time in seconds
-      // currentfreq = 0.0f + k * t; 
-      // currentphase = currentphase + 2 * PI * currentfreq * dt;
-      // targetPosition = amplitude * sin(currentphase); // target position is a sine wave with amplitude of 45 degrees
+      float t = (millis() - starttime) / 1000.0; // time in seconds
+      currentfreq = 0.0f + k * t; 
+      currentphase = currentphase + 2 * PI * currentfreq * dt;
+      targetPosition = amplitude * sin(currentphase); // target position is a sine wave with amplitude of 45 degrees
       // targetTorque = amplitude * sin(currentphase); // target position is a sine wave with amplitude of 45 degrees
 
       // float power = controller.update(targetPosition, shaftPosition, dt, currentfreq, currentphase);
-      float power = backdrivableController.update(6.5, motorPosition, dt, shaftPosition);
-      // float power = springController.updateLinear(0.3, targetPosition, motorPosition, dt, shaftPosition);
+      // float power = backdrivableController.update(6.5, motorPosition, dt, shaftPosition);
+      float power = springController.updateLinear(0.2, 0, motorPosition, dt, shaftPosition);
       // float power = trajectory.followCurveTrajectory(shaftPosition, dt, starttime);
       // float power = 0.0f;
       
@@ -172,8 +172,8 @@ void loop() {
       // Serial.println(targetPosition);
       Serial.print(">Shaft Position: ");
       Serial.println(shaftPosition);
-      // Serial.print(">Equilibrium Position: ");
-      // Serial.println(targetPosition);
+      Serial.print(">Equilibrium Position: ");
+      Serial.println(targetPosition);
       // // Serial.print(">Current Velocity: ");
       // // Serial.println(speed);
       // // Serial.print(">Current Acceleration: ");

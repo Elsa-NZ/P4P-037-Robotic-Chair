@@ -10,11 +10,11 @@ PID* PIDLinearController = nullptr;
 PID* PIDNonlinearController = nullptr;
 
 SpringController::SpringController() {
-    // Initialize linear PID gains
-    kp_linear = 10.0f;
+    // Initialize linear PID gains (BACKDRIVE DEMO: 15.0, 1.0, 0.5, 0.5)
+    kp_linear = 15.0f; 
     ki_linear = 5.0f;
-    kd_linear = 0.0f; 
-    kf_linear = 0.8f; // Feedforward gain for linear control
+    kd_linear = 0.5f; 
+    kf_linear = 0.5f; // Feedforward gain for linear control
     
     saturationHigh_linear = 0.9f * 255.0f;
     saturationLow_linear = 0.0;
@@ -45,13 +45,13 @@ float SpringController::updateLinear(float springConstant, float equilibriumPosi
     float currenttorque, torque, displacementCorrection = 0.0f;
     float displacement = equilibriumPosition - shaftPosition; // Calculate the angle error for PID
 
-    float torqueFromChair = CHAIRBACK_WEIGHT_IN_NEWTON * sin(shaftPosition * (PI / 180.0f)) * BAR_CENTROID;
+    float torqueFromChair = CHAIRBACK_WEIGHT_IN_NEWTON * sin(shaftPosition * (PI / 180.0f)) * 1.45 * BAR_CENTROID; // Calculate torque from the chair back weight based on current position (adjusted centriod for the bar based on exprimental testing)
     
     float targetTorque = displacement * springConstant - torqueFromChair; // Calculate the target compression based on the spring's compression ratio
     float targetCompression = 0.0f;
 
     if (targetTorque < 0) {
-        targetCompression = 0.0096 * pow(targetTorque, 2) + 0.6876 * targetTorque; 
+        targetCompression = -0.0096 * pow(targetTorque, 2) + 0.6876 * targetTorque; 
     } else {
         targetCompression = 0.0096 * pow(targetTorque, 2) + 0.6876 * targetTorque; //displacementCorrection = -0.0027 * pow(torqueFromChair,2) + 0.3236 * torqueFromChair; 
     }
@@ -60,9 +60,13 @@ float SpringController::updateLinear(float springConstant, float equilibriumPosi
 
     float compressionOutput = PIDLinearController->update(targetCompression, currentCompression, dt);
 
-    float feedforward = kf_linear * targetTorque / TORQUE_CONSTANT; // Feedforward term to assist in reaching target position (value from testing)
+    float feedforward = kf_linear * targetTorque / TORQUE_CONSTANT; // Feedforward term to assist in reaching target position (kf from testing)
 
-    
+    if (targetCompression > 0) {
+        torque = (-0.6876 + sqrt(0.6876 * 0.6876 + 4.0 * 0.0096 * targetCompression))/ (2.0 * 0.0096); // Quadratic formula to calculate the torque from the spring based on the current displacement
+    } else {
+        torque = (-0.6876 + sqrt(0.6876 * 0.6876 - 4.0 * 0.0096 * targetCompression))/ (2.0 * -0.0096); // Torque measured from spring
+    }
 
     // if (targetCompression < 0) {
     //     feedforward = feedforward - 25.5;
@@ -70,7 +74,7 @@ float SpringController::updateLinear(float springConstant, float equilibriumPosi
     //     feedforward = feedforward + 25.5;
     // }
 
-    output = compressionOutput + feedforward*0;
+    output = compressionOutput + feedforward;
 
     // if (output > saturationHigh_linear) {
     //     output = saturationHigh_linear;
@@ -86,6 +90,11 @@ float SpringController::updateLinear(float springConstant, float equilibriumPosi
     Serial.println(targetCompression);
     Serial.print(">Current Compression: ");
     Serial.println(currentCompression);
+    // Serial.print(">Torque Before: ");
+    // Serial.println(targetTorque + torqueFromChair);
+    // Serial.print(">Torque After: ");
+    // Serial.println(torque+torqueFromChair);
+
 
     // CODE FOR DATA
     // if (currentCompression < 0) {
