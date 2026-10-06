@@ -132,7 +132,8 @@ void loop() {
 
       // float power = controller.update(targetPosition, shaftPosition, dt, currentfreq, currentphase);
       // float power = backdrivableController.update(6.5, motorPosition, dt, shaftPosition);
-      float power = springController.updateLinear(0.2, 0, motorPosition, dt, shaftPosition);
+      // float power = springController.updateLinear(0.2, 0, motorPosition, dt, shaftPosition);
+      float power = springController.torqueController(motorPosition, dt, shaftPosition, 0.0); // target torque is a sine wave with amplitude of 1 Nm
       // float power = trajectory.followCurveTrajectory(shaftPosition, dt, starttime);
       // float power = 0.0f;
       

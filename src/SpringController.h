@@ -12,6 +12,7 @@ public:
     float SCurveTraj(float springConstant, float startPos, float endPos, float travelTime, float dt, unsigned long startTime, float motorPosition, float shaftPosition);
     float getOutput();
     float getError();
+    float torqueController(float motorPosition, float dt, float shaftPosition, float targetTorque);
 
 private:
     float kp_linear, ki_linear, kd_linear, kf_linear;

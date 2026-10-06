@@ -45,10 +45,66 @@ float SpringController::updateLinear(float springConstant, float equilibriumPosi
     float currenttorque, torque, displacementCorrection = 0.0f;
     float displacement = equilibriumPosition - shaftPosition; // Calculate the angle error for PID
 
-    float torqueFromChair = CHAIRBACK_WEIGHT_IN_NEWTON * sin(shaftPosition * (PI / 180.0f)) * 1.45 * BAR_CENTROID; // Calculate torque from the chair back weight based on current position (adjusted centriod for the bar based on exprimental testing)
     
-    float targetTorque = displacement * springConstant - torqueFromChair; // Calculate the target compression based on the spring's compression ratio
-    float targetCompression = 0.0f;
+    float targetTorque = displacement * springConstant; // Calculate the target compression based on the spring's compression ratio
+    output = torqueController(motorPosition, dt, shaftPosition, targetTorque); // Update the torque controller with the new target torque
+    
+
+    return output;
+}
+
+float SpringController::updateNonlinear(float targetPosition, float currentPosition, float dt, float magneticEncoderPosition) {
+    // Update position PID controller
+    
+
+    error = magneticEncoderPosition - targetPosition; // Calculate the angle error for PID
+
+    // Apply the nonlinear spring profile while preserving the sign of the error
+    float errorNonlinear = error * fabs(error);
+
+    float positionOutput = PIDNonlinearController->update(targetPosition, errorNonlinear, dt); // Note: +ve  turn CCW, -ve  turn CW (NEED TO CHECK PRIOR TESTING)
+
+    // if (positionOutput != 0) {
+    //     positionOutput += 25.5*(abs(positionOutput)/positionOutput);
+    // }
+
+    // Serial.println(positionOutput);
+
+    // Store the final output for retrieval
+    output = positionOutput;
+
+    return output;
+}
+
+float SpringController::SCurveTraj(float springConstant, float startPos, float endPos, float travelTime, float dt, unsigned long startTime, float motorPosition, float shaftPosition) {
+    // Implement the logic for following an S-curve trajectory
+    // This is a placeholder implementation and should be replaced with actual S-curve-following logic
+
+    float delta = endPos - startPos; // Define the change in position based on the S-curve trajectory
+
+    long currentTime = millis() - startTime; // Current time in milliseconds since the start of the trajectory
+
+    float s = ((float)currentTime) / travelTime;
+    float equilibriumPosition = 0.0f; // Define the target position based on the S-curve trajectory
+
+    if (currentTime < travelTime) {
+        equilibriumPosition = startPos + delta * (10*s*s*s - 15*s*s*s*s + 6*s*s*s*s*s);
+    } else {
+        equilibriumPosition = endPos; // stay in position after the trajectory is complete
+    }
+
+    Serial.print(">Equilibrium Position: ");
+    Serial.println(equilibriumPosition);
+
+    return updateLinear(springConstant, equilibriumPosition, motorPosition, dt, shaftPosition); // Update the linear controller with the new equilibrium position
+}
+
+float SpringController::torqueController(float motorPosition, float dt, float shaftPosition, float targetTorque) {
+    // Update position PID controller
+    
+    float targetCompression, torque = 0.0f;
+    float torqueFromChair = CHAIRBACK_WEIGHT_IN_NEWTON * sin(shaftPosition * (PI / 180.0f)) * 1.45 * BAR_CENTROID; // Calculate torque from the chair back weight based on current position (adjusted centriod for the bar based on exprimental testing)
+    targetTorque = targetTorque - torqueFromChair; // Add the torque from the chair back weight to the target torque
 
     if (targetTorque < 0) {
         targetCompression = -0.0096 * pow(targetTorque, 2) + 0.6876 * targetTorque; 
@@ -117,52 +173,6 @@ float SpringController::updateLinear(float springConstant, float equilibriumPosi
     
 
     return output;
-}
-
-float SpringController::updateNonlinear(float targetPosition, float currentPosition, float dt, float magneticEncoderPosition) {
-    // Update position PID controller
-    
-
-    error = magneticEncoderPosition - targetPosition; // Calculate the angle error for PID
-
-    // Apply the nonlinear spring profile while preserving the sign of the error
-    float errorNonlinear = error * fabs(error);
-
-    float positionOutput = PIDNonlinearController->update(targetPosition, errorNonlinear, dt); // Note: +ve  turn CCW, -ve  turn CW (NEED TO CHECK PRIOR TESTING)
-
-    // if (positionOutput != 0) {
-    //     positionOutput += 25.5*(abs(positionOutput)/positionOutput);
-    // }
-
-    // Serial.println(positionOutput);
-
-    // Store the final output for retrieval
-    output = positionOutput;
-
-    return output;
-}
-
-float SpringController::SCurveTraj(float springConstant, float startPos, float endPos, float travelTime, float dt, unsigned long startTime, float motorPosition, float shaftPosition) {
-    // Implement the logic for following an S-curve trajectory
-    // This is a placeholder implementation and should be replaced with actual S-curve-following logic
-
-    float delta = endPos - startPos; // Define the change in position based on the S-curve trajectory
-
-    long currentTime = millis() - startTime; // Current time in milliseconds since the start of the trajectory
-
-    float s = ((float)currentTime) / travelTime;
-    float equilibriumPosition = 0.0f; // Define the target position based on the S-curve trajectory
-
-    if (currentTime < travelTime) {
-        equilibriumPosition = startPos + delta * (10*s*s*s - 15*s*s*s*s + 6*s*s*s*s*s);
-    } else {
-        equilibriumPosition = endPos; // stay in position after the trajectory is complete
-    }
-
-    Serial.print(">Equilibrium Position: ");
-    Serial.println(equilibriumPosition);
-
-    return updateLinear(springConstant, equilibriumPosition, motorPosition, dt, shaftPosition); // Update the linear controller with the new equilibrium position
 }
 
 
