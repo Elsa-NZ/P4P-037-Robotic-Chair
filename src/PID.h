@@ -9,7 +9,7 @@ public:
     float update(float target, float current, float dt);
     float getOutput();
     void setSaturationLimits(float saturationHigh, float saturationLow);
-    void setGains(float kp, float ki, float kd);
+    void setGains(float kp, float ki, float kd, float windupLimit);
 
 private:
     float kp, ki, kd;

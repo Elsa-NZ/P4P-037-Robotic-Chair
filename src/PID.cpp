@@ -14,10 +14,11 @@ PID::PID(float kp, float ki, float kd, float windupLimit, float saturationHigh, 
     this->resetIntegralOnErrorSignChange = resetIntegralOnErrorSignChange;
 }
 
-void PID::setGains(float kp, float ki, float kd) {
+void PID::setGains(float kp, float ki, float kd, float windupLimit) {
     this->kp = kp;
     this->ki = ki;
     this->kd = kd;
+    this->windupLimit = windupLimit;
 }
 
 float PID::update(float target, float current, float dt) {
