@@ -133,22 +133,31 @@ void loop() {
       // float power = controller.update(targetPosition, shaftPosition, dt, currentfreq, currentphase);
       // float power = backdrivableController.update(6.5, motorPosition, dt, shaftPosition);
       // float power = springController.updateLinear(0.15, 0, motorPosition, dt, shaftPosition);
-      float power = springController.torqueController(motorPosition, dt, shaftPosition, targetTorque); // target torque is a sine wave with amplitude of 1 Nm
+      // float power = springController.torqueController(motorPosition, dt, shaftPosition, 4.0); // target torque is a sine wave with amplitude of 1 Nm
       // float power = trajectory.followCurveTrajectory(shaftPosition, dt, starttime);
-      // float power = 0.0f;
+      float power = 0.0f;
       
-      // if (millis() - starttime < 7000) {
-      //   power = trajectory.SCurveTraj(0.0f, -60.0f, 6000.0f, dt, starttime, shaftPosition);  
-      //   startPosition1 = shaftPosition;  // Store the starting position for the next trajectory
-      // } else if (millis() - starttime >= 7000 && millis() - starttime < 9500) {
-      //   power = trajectory.SCurveTraj(startPosition1, 10.0f, 1500.0f, dt, starttime+7000, shaftPosition);
-      //   startPosition2 = shaftPosition;  // Store the starting position for the next trajectory
-      // } else if (millis() - starttime >= 9500 && millis() - starttime < 11000) {
-      //   power = trajectory.SCurveTraj(startPosition2, 15.0f, 500.0f, dt, starttime+9500, shaftPosition);
-      //   startPosition3 = shaftPosition;  // Store the starting position for the next trajectory
-      // } else if (millis() - starttime >= 11000) {
-      //   power = trajectory.SCurveTraj(startPosition3, -10.0f, 1000.0f, dt, starttime+11000, shaftPosition);
+      // Implement S-curve trajectory for torque control
+      // if (millis() - starttime < 12000) {
+      //   power = springController.SCurveTraj(0.0f, 10.0f, 10000.0f, dt, starttime, motorPosition, shaftPosition); 
+      // } else if (millis() - starttime >= 12000 && millis() - starttime < 17000) {
+      //   power = springController.SCurveTraj(10.0f, -5.0f, 3000.0f, dt, starttime+12000, motorPosition, shaftPosition);
+      // } else if (millis() - starttime >= 17000 && millis() - starttime < 20000) {
+      //   power = springController.SCurveTraj(-5.0f, 0.0f, 1000.0f, dt, starttime+17000, motorPosition, shaftPosition);
+      // } else if (millis() - starttime >= 20000) {
+      //   power = springController.SCurveTraj(0.0f, 1.0f, 2000.0f, dt, starttime+20000, motorPosition, shaftPosition);
       // }
+
+      // Implement S-curve trajectory for position control
+      if (millis() - starttime < 12000) {
+        power = trajectory.SCurveTraj(0.0f, -50.0f, 10000.0f, dt, starttime, shaftPosition); 
+      } else if (millis() - starttime >= 12000 && millis() - starttime < 17000) {
+        power = trajectory.SCurveTraj(-50.0f, -5.0f, 3000.0f, dt, starttime+12000, shaftPosition);
+      } else if (millis() - starttime >= 17000 && millis() - starttime < 20000) {
+        power = trajectory.SCurveTraj(-5.0f, 20.0f, 1000.0f, dt, starttime+17000, shaftPosition);
+      } else if (millis() - starttime >= 20000) {
+        power = trajectory.SCurveTraj(20.0f, 0.0f, 2000.0f, dt, starttime+20000, shaftPosition);
+      }
 
       // if (millis() - starttime < 5000) {
       //   power = backdrivableController.update(6.5, motorPosition, dt, shaftPosition);   // Store the starting position for the next trajectory

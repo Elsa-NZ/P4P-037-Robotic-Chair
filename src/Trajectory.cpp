@@ -206,7 +206,7 @@ float Trajectory::SCurveTraj(float startPos, float endPos, float travelTime, flo
     ki_pos = 1.2;
     kd_pos = 0.12;
 
-    TrajectoryControllerPosition->setGains(kp_pos, ki_pos, kd_pos);
+    TrajectoryControllerPosition->setGains(kp_pos, ki_pos, kd_pos, windupLimit_pos); // Update the PID gains for position control
 
     long currentTime = millis() - startTime; // Current time in milliseconds since the start of the trajectory
 

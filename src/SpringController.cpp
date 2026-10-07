@@ -9,11 +9,13 @@
 PID* PIDLinearController = nullptr;
 PID* PIDNonlinearController = nullptr;
 
+bool SpringActive = false;
+
 SpringController::SpringController() {
     // Initialize linear PID gains (BACKDRIVE DEMO: 15.0, 1.0, 0.5, 0.5)
-    kp_linear = 25.0f; 
-    ki_linear = 10.0f;
-    kd_linear = 0.5f; 
+    kp_linear = 10.0f; 
+    ki_linear = 50.0f;
+    kd_linear = 0.7f; 
     kf_linear = 0.9f; // Feedforward gain for linear control
     
     saturationHigh_linear = 0.9f * 255.0f;
@@ -47,9 +49,10 @@ float SpringController::updateLinear(float springConstant, float equilibriumPosi
 
     
     float targetTorque = displacement * springConstant; // Calculate the target compression based on the spring's compression ratio
+    PIDLinearController->setGains(kp_linear, ki_linear, kd_linear, 0.5); // Update the PID gains for linear control
+    SpringActive = true; // Set the spring active flag to true
     output = torqueController(motorPosition, dt, shaftPosition, targetTorque); // Update the torque controller with the new target torque
-    
-
+    SpringActive = false; // Set the spring active flag to false
     return output;
 }
 
@@ -76,7 +79,7 @@ float SpringController::updateNonlinear(float targetPosition, float currentPosit
     return output;
 }
 
-float SpringController::SCurveTraj(float springConstant, float startTorque, float endTorque, float travelTime, float dt, unsigned long startTime, float motorPosition, float shaftPosition) {
+float SpringController::SCurveTraj(float startTorque, float endTorque, float travelTime, float dt, unsigned long startTime, float motorPosition, float shaftPosition) {
     // Implement the logic for following an S-curve trajectory
     // This is a placeholder implementation and should be replaced with actual S-curve-following logic
 
@@ -102,6 +105,10 @@ float SpringController::SCurveTraj(float springConstant, float startTorque, floa
 
 float SpringController::torqueController(float motorPosition, float dt, float shaftPosition, float targetTorque) {
     // Update position PID controller
+
+    if (!SpringActive) {
+        PIDLinearController->setGains(kp_linear, ki_linear, kd_linear, 1); // If the spring is not active, set the PID gains to zero
+    }
     
     float targetCompression, targetTorqueMinusChair, torque = 0.0f;
     float torqueFromChair = CHAIRBACK_WEIGHT_IN_NEWTON * sin(shaftPosition * (PI / 180.0f)) * 1.45 * BAR_CENTROID; // Calculate torque from the chair back weight based on current position (adjusted centriod for the bar based on exprimental testing)
