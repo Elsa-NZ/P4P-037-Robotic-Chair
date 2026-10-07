@@ -76,27 +76,28 @@ float SpringController::updateNonlinear(float targetPosition, float currentPosit
     return output;
 }
 
-float SpringController::SCurveTraj(float springConstant, float startPos, float endPos, float travelTime, float dt, unsigned long startTime, float motorPosition, float shaftPosition) {
+float SpringController::SCurveTraj(float springConstant, float startTorque, float endTorque, float travelTime, float dt, unsigned long startTime, float motorPosition, float shaftPosition) {
     // Implement the logic for following an S-curve trajectory
     // This is a placeholder implementation and should be replaced with actual S-curve-following logic
 
-    float delta = endPos - startPos; // Define the change in position based on the S-curve trajectory
-
     long currentTime = millis() - startTime; // Current time in milliseconds since the start of the trajectory
+    float delta = endTorque - startTorque; // Define the change in position based on the S-curve trajectory
 
     float s = ((float)currentTime) / travelTime;
-    float equilibriumPosition = 0.0f; // Define the target position based on the S-curve trajectory
+    float targetTorque;
 
     if (currentTime < travelTime) {
-        equilibriumPosition = startPos + delta * (10*s*s*s - 15*s*s*s*s + 6*s*s*s*s*s);
+        targetTorque = startTorque + delta * (10*s*s*s - 15*s*s*s*s + 6*s*s*s*s*s);
     } else {
-        equilibriumPosition = endPos; // stay in position after the trajectory is complete
+        targetTorque = endTorque; // stay in position after the trajectory is complete
     }
 
-    Serial.print(">Equilibrium Position: ");
-    Serial.println(equilibriumPosition);
+    Serial.print(">Target Torque: ");
+    Serial.println(targetTorque);
 
-    return updateLinear(springConstant, equilibriumPosition, motorPosition, dt, shaftPosition); // Update the linear controller with the new equilibrium position
+    float power = torqueController(motorPosition, dt, shaftPosition, targetTorque); // Update the torque controller with the new target torque
+
+    return power;
 }
 
 float SpringController::torqueController(float motorPosition, float dt, float shaftPosition, float targetTorque) {
