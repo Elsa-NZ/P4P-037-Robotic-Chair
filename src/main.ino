@@ -127,13 +127,13 @@ void loop() {
       float t = (millis() - starttime) / 1000.0; // time in seconds
       currentfreq = 0.0f + k * t; 
       currentphase = currentphase + 2 * PI * currentfreq * dt;
-      targetPosition = amplitude * sin(currentphase); // target position is a sine wave with amplitude of 45 degrees
-      // targetTorque = amplitude * sin(currentphase); // target position is a sine wave with amplitude of 45 degrees
+      // targetPosition = amplitude * sin(currentphase); // target position is a sine wave with amplitude of 45 degrees
+      targetTorque = amplitude * sin(currentphase); // target position is a sine wave with amplitude of 45 degrees
 
       // float power = controller.update(targetPosition, shaftPosition, dt, currentfreq, currentphase);
       // float power = backdrivableController.update(6.5, motorPosition, dt, shaftPosition);
-      // float power = springController.updateLinear(0.2, 0, motorPosition, dt, shaftPosition);
-      float power = springController.torqueController(motorPosition, dt, shaftPosition, 0.0); // target torque is a sine wave with amplitude of 1 Nm
+      // float power = springController.updateLinear(0.15, 0, motorPosition, dt, shaftPosition);
+      float power = springController.torqueController(motorPosition, dt, shaftPosition, targetTorque); // target torque is a sine wave with amplitude of 1 Nm
       // float power = trajectory.followCurveTrajectory(shaftPosition, dt, starttime);
       // float power = 0.0f;
       
@@ -180,8 +180,8 @@ void loop() {
       // // Serial.print(">Current Acceleration: ");
       // // Serial.println(acceleration);
 
-      // Serial.print(">Power Output: ");
-      // Serial.println(power);
+      Serial.print(">Power Output: ");
+      Serial.println(power);
 
       // Use the output to control the motor (set PWM value)
 

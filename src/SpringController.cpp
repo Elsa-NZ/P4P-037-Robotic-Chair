@@ -11,10 +11,10 @@ PID* PIDNonlinearController = nullptr;
 
 SpringController::SpringController() {
     // Initialize linear PID gains (BACKDRIVE DEMO: 15.0, 1.0, 0.5, 0.5)
-    kp_linear = 15.0f; 
-    ki_linear = 5.0f;
+    kp_linear = 25.0f; 
+    ki_linear = 10.0f;
     kd_linear = 0.5f; 
-    kf_linear = 0.5f; // Feedforward gain for linear control
+    kf_linear = 0.9f; // Feedforward gain for linear control
     
     saturationHigh_linear = 0.9f * 255.0f;
     saturationLow_linear = 0.0;
@@ -102,21 +102,30 @@ float SpringController::SCurveTraj(float springConstant, float startPos, float e
 float SpringController::torqueController(float motorPosition, float dt, float shaftPosition, float targetTorque) {
     // Update position PID controller
     
-    float targetCompression, torque = 0.0f;
+    float targetCompression, targetTorqueMinusChair, torque = 0.0f;
     float torqueFromChair = CHAIRBACK_WEIGHT_IN_NEWTON * sin(shaftPosition * (PI / 180.0f)) * 1.45 * BAR_CENTROID; // Calculate torque from the chair back weight based on current position (adjusted centriod for the bar based on exprimental testing)
-    targetTorque = targetTorque - torqueFromChair; // Add the torque from the chair back weight to the target torque
+    targetTorqueMinusChair = targetTorque - torqueFromChair; // Add the torque from the chair back weight to the target torque
 
-    if (targetTorque < 0) {
-        targetCompression = -0.0096 * pow(targetTorque, 2) + 0.6876 * targetTorque; 
+    if (targetTorqueMinusChair < 0) {
+        targetCompression = -0.0096 * pow(targetTorqueMinusChair, 2) + 0.6876 * targetTorqueMinusChair; 
     } else {
-        targetCompression = 0.0096 * pow(targetTorque, 2) + 0.6876 * targetTorque; //displacementCorrection = -0.0027 * pow(torqueFromChair,2) + 0.3236 * torqueFromChair; 
+        targetCompression = 0.0096 * pow(targetTorqueMinusChair, 2) + 0.6876 * targetTorqueMinusChair; //displacementCorrection = -0.0027 * pow(torqueFromChair,2) + 0.3236 * torqueFromChair; 
     }
 
     float currentCompression = (motorPosition - shaftPosition); // Calculate the current compression
 
     float compressionOutput = PIDLinearController->update(targetCompression, currentCompression, dt);
 
-    float feedforward = kf_linear * targetTorque / TORQUE_CONSTANT; // Feedforward term to assist in reaching target position (kf from testing)
+
+
+
+    float feedforward = kf_linear * (targetTorque - 0.5*torqueFromChair)/ TORQUE_CONSTANT; // Feedforward term to assist in reaching target position (kf from testing)
+
+    // if (feedforward < 0) {
+    //     feedforward = feedforward - 0.1*255; 
+    // } else {
+    //     feedforward = feedforward + 0.1*255;
+    // }
 
     if (targetCompression > 0) {
         torque = (-0.6876 + sqrt(0.6876 * 0.6876 + 4.0 * 0.0096 * targetCompression))/ (2.0 * 0.0096); // Quadratic formula to calculate the torque from the spring based on the current displacement
