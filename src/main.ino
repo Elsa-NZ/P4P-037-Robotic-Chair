@@ -71,7 +71,7 @@ void loop() {
   float startPosition2 = 0.0f;
   float startPosition3 = 0.0f;
 
-  while (readSwitchDIP() != 0b000) {  // Run FSM when a DIP switch is turned on
+  while (true) {  // Run FSM when a DIP switch is turned on
 
     // if (millis() % 2 == 0) {  // run the controller & FSM update every 10 ms (defined by dt)
       motorPosition = (pulses / (2000.0 * 51.0)) * 360.0;  // Current position from encoder

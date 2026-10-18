@@ -7,7 +7,7 @@
 
 extern OperatingFSM operatingFSM; // Declare the external instance of OperatingFSM
 
-MainFSM::MainFSM() : currentState(IDLE), timeInState(0.0f) { }
+MainFSM::MainFSM() : currentState(HOMING), timeInState(0.0f) { }
 
 void MainFSM::updateFSM(float motorPosition) {
     this->motorPosition = motorPosition; // Update the current motor position
