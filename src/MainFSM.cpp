@@ -84,7 +84,7 @@ void MainFSM::homing() {
   // In the HOMING state, we can implement the homing logic
   while (!homed) {
     home();
-    delay(10);
+    // delay(10);
   }
   isHomed = true; // Set to true to simulate homing completion
   setLED(HOMING_LED_PIN); // Turn on homing LED

@@ -44,37 +44,22 @@ void setup() {
   motorSetup();
 
   // Home at the very start of testing!!
-  while (!homed) {
-    home();
-    // delay(10);
-  }
-
-
-  // while (readShaftEncoderADC() > (1010.0f)) {  // Move to -90 degrees before starting the test
-  //   float power = controller.update(-90, (readShaftEncoderADC() - zeroShaftPosition) * MAGNETIC_ENCODER_RESOLUTION, 0.01);
-  //   move(power);
-  //   delay(10);
+  // while (!homed) {
+  //   home();
   // }
 
-  setLED(HOMING_LED_PIN);  // turn homing led light on to indicate it has homed
+  // setLED(HOMING_LED_PIN);  // turn homing led light on to indicate it has homed
 }
 
 void loop() {
   pinMode(7, OUTPUT);  // Set pin 7 as output for LED indicator
   float targetPosition = 0;  // Set the target position to the first angle in the array
   float targetTorque = 0;  // Set the target torque to the first angle in the array
-  // int theta = 0;  // Index for the angles array
   double lastSpeed = 0;  // Variable to store the last speed for acceleration calculation
   float dt = 0.01f;
 
   float output = 0.0f;
   float error = 0.0f;
-
-  //2d array of 100 elements to store power and error values for analysis
-  float powerArray[50][2];  // [0] for power, [1] for error
-  int i = 0;
-  bool exportData = false;  // Flag to indicate if data has been exported
-  bool exportedData = false;  // Flag to indicate if data has been exported
 
   unsigned long starttime = millis();
   double currentfreq = 0; // starting frequency 0 Hz
@@ -86,56 +71,35 @@ void loop() {
   float startPosition2 = 0.0f;
   float startPosition3 = 0.0f;
 
-  while (readSwitchDIP() == 0b001 || readSwitchDIP() == 0b011 || readSwitchDIP() == 0b101) {  // begin testing when a DIP switch is turned on
+  while (readSwitchDIP() != 0b000) {  // Run FSM when a DIP switch is turned on
 
-
-    // if (exportData == true) {  // store power and error every 100 ms for analysis
-    // //     error = backdrivableController.getError();
-    // //     output = backdrivableController.getOutput();
-    // //     powerArray[i][0] = output;  // store output in array
-    // //     powerArray[i][1] = error;  // store error in array
-
-    // //     i++;
-    // // } else if (i == 100 && !exportData) {  // print power and error values when DIP switch is turned to 0b010
-    // //     // Serial.begin(115200);
-    // //     // delay(100);  // Allow time for Serial to initialize
-    //     for (int j = 0; j < i; j++) {
-    //       Serial.print(powerArray[j][1]);
-    //       Serial.print(", ");
-    //       Serial.println(powerArray[j][0]);
-    //     }
-    //     exportData = false;  // set export flag to false to indicate data has been exported
-    //     exportedData = true;  // set exported flag to true to indicate data has been exported
-    // }
-
-    if (millis() % 2 == 0) {  // run the controller & FSM update every 10 ms (defined by dt)
+    // if (millis() % 2 == 0) {  // run the controller & FSM update every 10 ms (defined by dt)
       motorPosition = (pulses / (2000.0 * 51.0)) * 360.0;  // Current position from encoder
       motorPosition = movingAvg(motorPosition, motorPositionBuffer, MOTOR_POSITION_FILTER_BUFFER_SIZE);
-    }
+      mainFSM.updateFSM(motorPosition);  // Update the main FSM to handle state transitions and actions
+    // }
 
-    // run the controller & FSM update every 10 ms (defined by dt)
+    // if (millis() % 10 == 0) {
 
-    if (millis() % 10 == 0) {
-
-      float shaftPosition = (readShaftEncoderADC() - zeroShaftPosition) * MAGNETIC_ENCODER_RESOLUTION;  // Current position from shaft encoder
+      // float shaftPosition = (readShaftEncoderADC() - zeroShaftPosition) * MAGNETIC_ENCODER_RESOLUTION;  // Current position from shaft encoder
   
-      float speed = ((constrain(analogRead(SPEED_PIN) * (5.0/1023.0), V_min, V_max) / V_max) * (RPM_max - RPM_min) + RPM_min) * 6.0 / 51.0 ; // Convert analog reading to speed in RPM
-      double acceleration = (speed - lastSpeed) / dt;
-      lastSpeed = speed;
+      // float speed = ((constrain(analogRead(SPEED_PIN) * (5.0/1023.0), V_min, V_max) / V_max) * (RPM_max - RPM_min) + RPM_min) * 6.0 / 51.0 ; // Convert analog reading to speed in RPM
+      // double acceleration = (speed - lastSpeed) / dt;
+      // lastSpeed = speed;
 
-      // generate chirp sweep signal for target position
-      float t = (millis() - starttime) / 1000.0; // time in seconds
-      currentfreq = 0.0f + k * t; 
-      currentphase = currentphase + 2 * PI * currentfreq * dt;
-      // targetPosition = amplitude * sin(currentphase); // target position is a sine wave with amplitude of 45 degrees
-      targetTorque = amplitude * sin(currentphase); // target position is a sine wave with amplitude of 45 degrees
+      // // generate chirp sweep signal for target position
+      // float t = (millis() - starttime) / 1000.0; // time in seconds
+      // currentfreq = 0.0f + k * t; 
+      // currentphase = currentphase + 2 * PI * currentfreq * dt;
+      // // targetPosition = amplitude * sin(currentphase); // target position is a sine wave with amplitude of 45 degrees
+      // targetTorque = amplitude * sin(currentphase); // target position is a sine wave with amplitude of 45 degrees
 
       // float power = controller.update(targetPosition, shaftPosition, dt, currentfreq, currentphase);
       // float power = backdrivableController.update(6.5, motorPosition, dt, shaftPosition);
       // float power = springController.updateLinear(0.15, 0, motorPosition, dt, shaftPosition);
       // float power = springController.torqueController(motorPosition, dt, shaftPosition, 4.0); // target torque is a sine wave with amplitude of 1 Nm
       // float power = trajectory.followCurveTrajectory(shaftPosition, dt, starttime);
-      float power = 0.0f;
+      // float power = 0.0f;
       
       // Implement S-curve trajectory for torque control
       // if (millis() - starttime < 12000) {
@@ -149,15 +113,15 @@ void loop() {
       // }
 
       // Implement S-curve trajectory for position control
-      if (millis() - starttime < 12000) {
-        power = trajectory.SCurveTraj(0.0f, -50.0f, 10000.0f, dt, starttime, shaftPosition); 
-      } else if (millis() - starttime >= 12000 && millis() - starttime < 17000) {
-        power = trajectory.SCurveTraj(-50.0f, -5.0f, 3000.0f, dt, starttime+12000, shaftPosition);
-      } else if (millis() - starttime >= 17000 && millis() - starttime < 20000) {
-        power = trajectory.SCurveTraj(-5.0f, 20.0f, 1000.0f, dt, starttime+17000, shaftPosition);
-      } else if (millis() - starttime >= 20000) {
-        power = trajectory.SCurveTraj(20.0f, 0.0f, 2000.0f, dt, starttime+20000, shaftPosition);
-      }
+      // if (millis() - starttime < 12000) {
+      //   power = trajectory.SCurveTraj(0.0f, -50.0f, 10000.0f, dt, starttime, shaftPosition); 
+      // } else if (millis() - starttime >= 12000 && millis() - starttime < 17000) {
+      //   power = trajectory.SCurveTraj(-50.0f, -5.0f, 3000.0f, dt, starttime+12000, shaftPosition);
+      // } else if (millis() - starttime >= 17000 && millis() - starttime < 20000) {
+      //   power = trajectory.SCurveTraj(-5.0f, 20.0f, 1000.0f, dt, starttime+17000, shaftPosition);
+      // } else if (millis() - starttime >= 20000) {
+      //   power = trajectory.SCurveTraj(20.0f, 0.0f, 2000.0f, dt, starttime+20000, shaftPosition);
+      // }
 
       // if (millis() - starttime < 5000) {
       //   power = backdrivableController.update(6.5, motorPosition, dt, shaftPosition);   // Store the starting position for the next trajectory
@@ -180,27 +144,27 @@ void loop() {
 
       // Serial.print(">Target Position: ");
       // Serial.println(targetPosition);
-      Serial.print(">Shaft Position: ");
-      Serial.println(shaftPosition);
-      Serial.print(">Equilibrium Position: ");
-      Serial.println(targetPosition);
+      // Serial.print(">Shaft Position: ");
+      // Serial.println(shaftPosition);
+      // Serial.print(">Equilibrium Position: ");
+      // Serial.println(targetPosition);
       // // Serial.print(">Current Velocity: ");
       // // Serial.println(speed);
       // // Serial.print(">Current Acceleration: ");
       // // Serial.println(acceleration);
 
-      Serial.print(">Power Output: ");
-      Serial.println(power);
+      // Serial.print(">Power Output: ");
+      // Serial.println(power);
 
       // Use the output to control the motor (set PWM value)
 
-      move(power);
+      // move(power);
 
-      if (shaftPosition < SAFE_MIN || shaftPosition > SAFE_MAX) {
-        digitalWrite(ERROR_LED_PIN, HIGH);  // Turn on LED when out of safe range
-      } else {
-        digitalWrite(ERROR_LED_PIN, LOW);  // Turn off LED when in safe range
-      }
+      // if (shaftPosition < SAFE_MIN || shaftPosition > SAFE_MAX) {
+      //   digitalWrite(ERROR_LED_PIN, HIGH);  // Turn on LED when out of safe range
+      // } else {
+      //   digitalWrite(ERROR_LED_PIN, LOW);  // Turn off LED when in safe range
+      // }
 
       // UNCOMMENT WHEN U WANT TO FIND SPECIFIC ANGLES
       // if (findInArrayWithTolerance(angles, numAngles, shaftPosition, 1.0)) {  // Check if motor angle has reached one of the specified angles in the angles array
@@ -229,8 +193,8 @@ void loop() {
       //   digitalWrite(7, LOW);  // Turn off LED when not at target angle
       // }
     // }
-  }
 }
+// }
 
 // Helper function check if motor angle has reached one of the specified angles
 // in the angles array. If it has, it turns on the operating LED. (do it as

@@ -14,7 +14,7 @@ class OperatingFSM {
     CONTROLLER7
   };
   State currentState;
-  float timeInState;
+  unsigned long switchStateTimer;
 
   void idle();
   void controller1();  // note: rename these controller with descriptive names
@@ -25,6 +25,8 @@ class OperatingFSM {
   void controller5();
   void controller6();
   void controller7();
+
+  unsigned long starttime;  // Variable to store the start time for trajectory calculations
 
  public:
   OperatingFSM();

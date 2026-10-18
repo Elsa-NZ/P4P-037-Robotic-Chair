@@ -4,28 +4,37 @@
 #include "CascadePosVelController.h"
 #include "definitions.h"
 #include "MotorEncoder.h"
+#include "SpringController.h"
+#include "Motor.h"
+#include "Trajectory.h"
 
 extern CascadePosVelController controller; // Declare the external instance of CascadePosVelController
-OperatingFSM::OperatingFSM() : currentState(IDLE), timeInState(0.0f) {}
+OperatingFSM::OperatingFSM() : currentState(IDLE), switchStateTimer(0.0f) {}
+extern SpringController springController; // Declare the external instance of SpringController
+extern Trajectory trajectory; // Declare the external instance of Trajectory
 
 void OperatingFSM::updateFSM() {
   switch (currentState) {
     case IDLE:
       idle();
+      starttime = millis(); // Reset the start time when entering the IDLE state
+      if (readEnableButton() && (readSwitchDIP() == 0b000)) {
+        switchStateTimer = millis(); // Reset the switch state timer
+      }
       // Transitions
-      if (readEnableButton() && (readSwitchDIP() == 0b001)) {
+      if (readEnableButton() && (readSwitchDIP() == 0b001) && (millis() - switchStateTimer >= 2000)) { // Check if the DIP switch is set to 001 and the button has been held for at least 1 second
         setState(CONTROLLER1);
-      } else if (readEnableButton() && (readSwitchDIP() == 0b010)) {
+      } else if (readEnableButton() && (readSwitchDIP() == 0b010) && (millis() - switchStateTimer >= 2000)) {
         setState(CONTROLLER2);
-      } else if (readEnableButton() && (readSwitchDIP() == 0b011)) {
+      } else if (readEnableButton() && (readSwitchDIP() == 0b011) && (millis() - switchStateTimer >= 2000)) {
         setState(CONTROLLER3);
-      } else if (readEnableButton() && (readSwitchDIP() == 0b100)) {
+      } else if (readEnableButton() && (readSwitchDIP() == 0b100) && (millis() - switchStateTimer >= 2000)) {
         setState(CONTROLLER4);
-      } else if (readEnableButton() && (readSwitchDIP() == 0b101)) {
+      } else if (readEnableButton() && (readSwitchDIP() == 0b101) && (millis() - switchStateTimer >= 2000)) {
         setState(CONTROLLER5);
-      } else if (readEnableButton() && (readSwitchDIP() == 0b110)) {
+      } else if (readEnableButton() && (readSwitchDIP() == 0b110) && (millis() - switchStateTimer >= 2000)) {
         setState(CONTROLLER6);
-      } else if (readEnableButton() && (readSwitchDIP() == 0b111)) {
+      } else if (readEnableButton() && (readSwitchDIP() == 0b111) && (millis() - switchStateTimer >= 2000)) {
         setState(CONTROLLER7);
       }
       break;
@@ -34,6 +43,7 @@ void OperatingFSM::updateFSM() {
       // Transitions
       if (!readEnableButton() || (readSwitchDIP() == 0b000)) {
         setState(IDLE);
+        switchStateTimer = millis();  // Reset the switch state timer on transition
       }
       break;
     case CONTROLLER2:
@@ -41,6 +51,7 @@ void OperatingFSM::updateFSM() {
       // Transitions
       if (!readEnableButton() || (readSwitchDIP() == 0b000)) {
         setState(IDLE);
+        switchStateTimer = millis();  // Reset the switch state timer on transition
     }
       break;
     case CONTROLLER3:
@@ -48,6 +59,7 @@ void OperatingFSM::updateFSM() {
       // Transitions
       if (!readEnableButton() || (readSwitchDIP() == 0b000)) {
         setState(IDLE);
+        switchStateTimer = millis();  // Reset the switch state timer on transition
       }
       break;
     case CONTROLLER4:
@@ -55,6 +67,7 @@ void OperatingFSM::updateFSM() {
         // Transitions
         if (!readEnableButton() || (readSwitchDIP() == 0b000)) {
             setState(IDLE);
+            switchStateTimer = millis();  // Reset the switch state timer on transition
         }
         break;
     case CONTROLLER5:
@@ -62,6 +75,7 @@ void OperatingFSM::updateFSM() {
         // Transitions
         if (!readEnableButton() || (readSwitchDIP() == 0b000)) {
             setState(IDLE);
+            switchStateTimer = millis();  // Reset the switch state timer on transition
         }
         break;
     case CONTROLLER6:
@@ -69,6 +83,7 @@ void OperatingFSM::updateFSM() {
         // Transitions
         if (!readEnableButton() || (readSwitchDIP() == 0b000)) {
             setState(IDLE);
+            switchStateTimer = millis();  // Reset the switch state timer on transition
         }
         break;
     case CONTROLLER7:
@@ -76,54 +91,67 @@ void OperatingFSM::updateFSM() {
         // Transitions
         if (!readEnableButton() || (readSwitchDIP() == 0b000)) {
             setState(IDLE);
+            switchStateTimer = millis();  // Reset the switch state timer on transition
         }
   }
 }
 
 void OperatingFSM::setState(State newState) {
   currentState = newState;
-  timeInState = 0.0f;  // Reset time in state on transition
+  switchStateTimer = millis();  // Reset the switch state timer on transition
 }
 
 void OperatingFSM::idle() {
   // Implement the behavior for the IDLE state
 }
 
-void OperatingFSM::controller1() {
+void OperatingFSM::controller1() { // SPRING CONTROLLER
   // Implement the behavior for CONTROLLER1 state
-  if (millis() % 10 == 0) {
     float dt = 0.01f; // 10 ms in seconds
-    float targetPosition = 0.0f; // Define your target position here
     float motorPosition = (pulses/(2000.0*51.0))*360.0; // Current position from encoder(); // Read the current position from the shaft
+    float shaftPosition = (readShaftEncoderADC() - zeroShaftPosition) * MAGNETIC_ENCODER_RESOLUTION;
     // MAKE SURE U UPDATE THIS !!
-    float power = controller.update(targetPosition, motorPosition, dt, 0.0f, 0.0f); // Update the controller with the target and current positions
+    float power = springController.updateLinear(0.15, 0, motorPosition, dt, shaftPosition);
 
-     if (power < 0) {
-      digitalWrite(DIRECTION_PIN, HIGH); // CW
-      power = abs(power);
-    } else {
-      digitalWrite(DIRECTION_PIN, LOW); // CCW
-    }
+    move(power);
 
-    // Use the output to control the motor (set PWM value)
-    analogWrite(PWM_PIN, power);
-  }
-  // Serial.println("OperatingFSM: CONTROLLER1 state active");
 }
 
-void OperatingFSM::controller2() {
+void OperatingFSM::controller2() { // BACKDRIVABLE CONTROLLER
   // Implement the behavior for CONTROLLER2 state
-  Serial.println("OperatingFSM: CONTROLLER2 state active");
+    float dt = 0.01f; // 10 ms in seconds
+    float motorPosition = (pulses/(2000.0*51.0))*360.0; // Current position from encoder(); // Read the current position from the shaft
+    float shaftPosition = (readShaftEncoderADC() - zeroShaftPosition) * MAGNETIC_ENCODER_RESOLUTION;
+    // MAKE SURE U UPDATE THIS !!
+    float power = springController.torqueController(motorPosition, dt, shaftPosition, 0.0);
+    move(power);
 }
 
-void OperatingFSM::controller3() {
-  // Implement the behavior for CONTROLLER3 state
-  Serial.println("OperatingFSM: CONTROLLER3 state active");
+void OperatingFSM::controller3() { // Constant Torque Controller
+    float dt = 0.01f; // 10 ms in seconds
+    float motorPosition = (pulses/(2000.0*51.0))*360.0; // Current position from encoder(); // Read the current position from the shaft
+    float shaftPosition = (readShaftEncoderADC() - zeroShaftPosition) * MAGNETIC_ENCODER_RESOLUTION;
+    // MAKE SURE U UPDATE THIS !!
+    float power;
+    if (millis() - starttime < 12000) {
+        power = trajectory.SCurveTraj(0.0f, -50.0f, 10000.0f, dt, starttime, shaftPosition); 
+      } else if (millis() - starttime >= 12000 && millis() - starttime < 17000) {
+        power = trajectory.SCurveTraj(-50.0f, -5.0f, 3000.0f, dt, starttime+12000, shaftPosition);
+      } else if (millis() - starttime >= 17000 && millis() - starttime < 20000) {
+        power = trajectory.SCurveTraj(-5.0f, 20.0f, 1000.0f, dt, starttime+17000, shaftPosition);
+      } else if (millis() - starttime >= 20000) {
+        power = trajectory.SCurveTraj(20.0f, 0.0f, 2000.0f, dt, starttime+20000, shaftPosition);
+      }
+    move(power);
 }
 
-void OperatingFSM::controller4() {
-  // Implement the behavior for CONTROLLER4 state
-  Serial.println("OperatingFSM: CONTROLLER4 state active");
+void OperatingFSM::controller4() { // Position Trajectory Controller
+    float dt = 0.01f; // 10 ms in seconds
+    float motorPosition = (pulses/(2000.0*51.0))*360.0; // Current position from encoder(); // Read the current position from the shaft
+    float shaftPosition = (readShaftEncoderADC() - zeroShaftPosition) * MAGNETIC_ENCODER_RESOLUTION;
+    // MAKE SURE U UPDATE THIS !!
+    float power = springController.torqueController(motorPosition, dt, shaftPosition, 4.0);
+    move(power);
 }
 
 void OperatingFSM::controller5() {
