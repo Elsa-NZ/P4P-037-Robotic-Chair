@@ -73,6 +73,7 @@ bool MainFSM::outsideSafeRange() {
 
 void MainFSM::idle() {
   // do nothing lol
+  move(0);
 }
 
 void MainFSM::operating() {
@@ -93,6 +94,7 @@ void MainFSM::homing() {
 void MainFSM::error() {
   // In the ERROR state, we can implement error handling logic
   // For now, we just stay in the ERROR state until the enable button is released
+  move(0); // Stop the motor
 }
 
 

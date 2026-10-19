@@ -103,6 +103,7 @@ void OperatingFSM::setState(State newState) {
 
 void OperatingFSM::idle() {
   // Implement the behavior for the IDLE state
+  move(0); // Stop the motor
 }
 
 void OperatingFSM::controller1() { // SPRING CONTROLLER
@@ -127,16 +128,16 @@ void OperatingFSM::controller2() { // BACKDRIVABLE CONTROLLER
     move(power);
 }
 
-void OperatingFSM::controller3() { // Constant Torque Controller
+void OperatingFSM::controller3() { // Position TrajectoryController
     float dt = 0.01f; // 10 ms in seconds
     float motorPosition = (pulses/(2000.0*51.0))*360.0; // Current position from encoder(); // Read the current position from the shaft
     float shaftPosition = (readShaftEncoderADC() - zeroShaftPosition) * MAGNETIC_ENCODER_RESOLUTION;
     // MAKE SURE U UPDATE THIS !!
     float power;
     if (millis() - starttime < 12000) {
-        power = trajectory.SCurveTraj(0.0f, -50.0f, 10000.0f, dt, starttime, shaftPosition); 
+        power = trajectory.SCurveTraj(0.0f, -30.0f, 10000.0f, dt, starttime, shaftPosition); 
       } else if (millis() - starttime >= 12000 && millis() - starttime < 17000) {
-        power = trajectory.SCurveTraj(-50.0f, -5.0f, 3000.0f, dt, starttime+12000, shaftPosition);
+        power = trajectory.SCurveTraj(-30.0f, -5.0f, 3000.0f, dt, starttime+12000, shaftPosition);
       } else if (millis() - starttime >= 17000 && millis() - starttime < 20000) {
         power = trajectory.SCurveTraj(-5.0f, 20.0f, 1000.0f, dt, starttime+17000, shaftPosition);
       } else if (millis() - starttime >= 20000) {
@@ -145,7 +146,7 @@ void OperatingFSM::controller3() { // Constant Torque Controller
     move(power);
 }
 
-void OperatingFSM::controller4() { // Position Trajectory Controller
+void OperatingFSM::controller4() { // Torque Controller
     float dt = 0.01f; // 10 ms in seconds
     float motorPosition = (pulses/(2000.0*51.0))*360.0; // Current position from encoder(); // Read the current position from the shaft
     float shaftPosition = (readShaftEncoderADC() - zeroShaftPosition) * MAGNETIC_ENCODER_RESOLUTION;
