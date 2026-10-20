@@ -1,16 +1,16 @@
 #include "OperatingFSM.h"
 #include "MainFSM.h"
 #include "HardwareFunctions.h"
-#include "CascadePosVelController.h"
+#include "PositionController.h"
 #include "definitions.h"
 #include "MotorEncoder.h"
-#include "SpringController.h"
+#include "TorqueController.h"
 #include "Motor.h"
 #include "Trajectory.h"
 
-extern CascadePosVelController controller; // Declare the external instance of CascadePosVelController
+extern PositionController controller; // Declare the external instance of CascadePosVelController
 OperatingFSM::OperatingFSM() : currentState(IDLE), switchStateTimer(0.0f) {}
-extern SpringController springController; // Declare the external instance of SpringController
+extern TorqueController springController; // Declare the external instance of SpringController
 extern Trajectory trajectory; // Declare the external instance of Trajectory
 
 void OperatingFSM::updateFSM() {
@@ -112,7 +112,7 @@ void OperatingFSM::controller1() { // SPRING CONTROLLER
     float motorPosition = (pulses/(2000.0*51.0))*360.0; // Current position from encoder(); // Read the current position from the shaft
     float shaftPosition = (readShaftEncoderADC() - zeroShaftPosition) * MAGNETIC_ENCODER_RESOLUTION;
     // MAKE SURE U UPDATE THIS !!
-    float power = springController.updateLinear(0.15, 0, motorPosition, dt, shaftPosition);
+    float power = springController.Spring(0.15, 0, motorPosition, dt, shaftPosition);
 
     move(power);
 
@@ -124,24 +124,23 @@ void OperatingFSM::controller2() { // BACKDRIVABLE CONTROLLER
     float motorPosition = (pulses/(2000.0*51.0))*360.0; // Current position from encoder(); // Read the current position from the shaft
     float shaftPosition = (readShaftEncoderADC() - zeroShaftPosition) * MAGNETIC_ENCODER_RESOLUTION;
     // MAKE SURE U UPDATE THIS !!
-    float power = springController.torqueController(motorPosition, dt, shaftPosition, 0.0);
+    float power = springController.updateTorqueController(motorPosition, dt, shaftPosition, 0.0);
     move(power);
 }
 
 void OperatingFSM::controller3() { // Position TrajectoryController
     float dt = 0.01f; // 10 ms in seconds
-    float motorPosition = (pulses/(2000.0*51.0))*360.0; // Current position from encoder(); // Read the current position from the shaft
     float shaftPosition = (readShaftEncoderADC() - zeroShaftPosition) * MAGNETIC_ENCODER_RESOLUTION;
     // MAKE SURE U UPDATE THIS !!
     float power;
     if (millis() - starttime < 12000) {
-        power = trajectory.SCurveTraj(0.0f, -30.0f, 10000.0f, dt, starttime, shaftPosition); 
+        power = trajectory.PosSCurveTraj(0.0f, -30.0f, 10000.0f, dt, starttime, shaftPosition); 
       } else if (millis() - starttime >= 12000 && millis() - starttime < 17000) {
-        power = trajectory.SCurveTraj(-30.0f, -5.0f, 3000.0f, dt, starttime+12000, shaftPosition);
+        power = trajectory.PosSCurveTraj(-30.0f, -5.0f, 3000.0f, dt, starttime+12000, shaftPosition);
       } else if (millis() - starttime >= 17000 && millis() - starttime < 20000) {
-        power = trajectory.SCurveTraj(-5.0f, 20.0f, 1000.0f, dt, starttime+17000, shaftPosition);
+        power = trajectory.PosSCurveTraj(-5.0f, 20.0f, 1000.0f, dt, starttime+17000, shaftPosition);
       } else if (millis() - starttime >= 20000) {
-        power = trajectory.SCurveTraj(20.0f, 0.0f, 2000.0f, dt, starttime+20000, shaftPosition);
+        power = trajectory.PosSCurveTraj(20.0f, 0.0f, 2000.0f, dt, starttime+20000, shaftPosition);
       }
     move(power);
 }
@@ -151,7 +150,7 @@ void OperatingFSM::controller4() { // Torque Controller
     float motorPosition = (pulses/(2000.0*51.0))*360.0; // Current position from encoder(); // Read the current position from the shaft
     float shaftPosition = (readShaftEncoderADC() - zeroShaftPosition) * MAGNETIC_ENCODER_RESOLUTION;
     // MAKE SURE U UPDATE THIS !!
-    float power = springController.torqueController(motorPosition, dt, shaftPosition, 4.0);
+    float power = springController.updateTorqueController(motorPosition, dt, shaftPosition, 4.0);
     move(power);
 }
 

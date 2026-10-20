@@ -40,10 +40,6 @@ void move(float power) {
         power = 0.1*255; // Set a minimum PWM value to prevent controller error
     }
     
-    // Serial.print("Motor Power: ");
-    // Serial.println(power);
-
-    // Use the output to control the motor (set PWM value)
     analogWrite(PWM_PIN, power);
 }
 
@@ -60,15 +56,7 @@ int home() {
   }
 
   int position = readShaftEncoderADC();
-  // Serial.print(">Shaft Position: ");
-  // Serial.println(position);
-
-  // map angular error to pwm range to saturate power
-  // homingPID.setSaturationLimits(11.2889365705*log(abs(error))+17.5978355576, 0.1*255); // Set saturation limits for homing PID for range of error values 3-950 and pwm 31-90
-
-  float speed = 1.8310546875*analogRead(SPEED_PIN)-740; //(1.8310546875*measuredVelocity)-740)
-  // Serial.print("Speed: ");
-  // Serial.println(speed);
+  
 
   if ((position <= SHAFT_HOME_POSITION + HOME_POSITION_TOLERANCE && position >= SHAFT_HOME_POSITION - HOME_POSITION_TOLERANCE)) { // SOMETHING IS WRONG WITH SPEED
     if (timerStart == 0) {
@@ -94,11 +82,6 @@ int home() {
 
   float power = homingPID.update(SHAFT_HOME_POSITION, position, dt);
 
-  
-//   Serial.print("Shaft Speed: ");
-//   Serial.println(speed);
-//   Serial.print("Home Position: ");
-//   Serial.println(SHAFT_HOME_POSITION);
 
   move(power);
 

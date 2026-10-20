@@ -1,13 +1,13 @@
-#ifndef P4P_SRC_CASCADE_POS_VEL_CONTROLLER_H_
-#define P4P_SRC_CASCADE_POS_VEL_CONTROLLER_H_
+#ifndef POSITION_CONTROLLER_H_
+#define POSITION_CONTROLLER_H_
 
 #include "Arduino.h"
 
-class CascadePosVelController {
+class PositionController {
 public:
-    CascadePosVelController();
-    ~CascadePosVelController();
-    float update(float targetPosition, float currentPosition, float dt, float currentFrequency, float currentPhase);
+    PositionController();
+    ~PositionController();
+    float updatePositionController(float targetPosition, float currentPosition, float dt, float currentFrequency, float currentPhase);
     float getOutput();
 
 private:

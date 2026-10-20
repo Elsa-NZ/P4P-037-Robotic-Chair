@@ -6,13 +6,10 @@
 #include "Motor.h"
 
 extern OperatingFSM operatingFSM; // Declare the external instance of OperatingFSM
-
 MainFSM::MainFSM() : currentState(HOMING), timeInState(0.0f) { }
 
 void MainFSM::updateFSM(float motorPosition) {
     this->motorPosition = motorPosition; // Update the current motor position
-    // Serial.print("State: ");
-    // Serial.println(currentState);
   switch (currentState) {
     case IDLE:
       idle();
