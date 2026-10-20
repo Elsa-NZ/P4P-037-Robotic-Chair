@@ -8,7 +8,7 @@ class MainFSM {
   enum State { IDLE, OPERATING, HOMING, ERROR };
   State currentState;
   float timeInState;
-  bool isHomed;
+  // bool isHomed;
   float motorPosition; // Store the current motor position
 
   bool outsideSafeRange();

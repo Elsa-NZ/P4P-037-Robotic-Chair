@@ -24,18 +24,25 @@ void OperatingFSM::updateFSM() {
       // Transitions
       if (readEnableButton() && (readSwitchDIP() == 0b001) && (millis() - switchStateTimer >= 2000)) { // Check if the DIP switch is set to 001 and the button has been held for at least 1 second
         setState(CONTROLLER1);
+        lastUpdateTime = millis(); // Initialize lastUpdateTime when entering CONTROLLER1
       } else if (readEnableButton() && (readSwitchDIP() == 0b010) && (millis() - switchStateTimer >= 2000)) {
         setState(CONTROLLER2);
+        lastUpdateTime = millis(); // Initialize lastUpdateTime when entering CONTROLLER2
       } else if (readEnableButton() && (readSwitchDIP() == 0b011) && (millis() - switchStateTimer >= 2000)) {
         setState(CONTROLLER3);
+        lastUpdateTime = millis(); // Initialize lastUpdateTime when entering CONTROLLER3
       } else if (readEnableButton() && (readSwitchDIP() == 0b100) && (millis() - switchStateTimer >= 2000)) {
         setState(CONTROLLER4);
+        lastUpdateTime = millis(); // Initialize lastUpdateTime when entering CONTROLLER4
       } else if (readEnableButton() && (readSwitchDIP() == 0b101) && (millis() - switchStateTimer >= 2000)) {
         setState(CONTROLLER5);
+        lastUpdateTime = millis(); // Initialize lastUpdateTime when entering CONTROLLER5
       } else if (readEnableButton() && (readSwitchDIP() == 0b110) && (millis() - switchStateTimer >= 2000)) {
         setState(CONTROLLER6);
+        lastUpdateTime = millis(); // Initialize lastUpdateTime when entering CONTROLLER6
       } else if (readEnableButton() && (readSwitchDIP() == 0b111) && (millis() - switchStateTimer >= 2000)) {
         setState(CONTROLLER7);
+        lastUpdateTime = millis(); // Initialize lastUpdateTime when entering CONTROLLER7
       }
       break;
     case CONTROLLER1:
@@ -108,7 +115,7 @@ void OperatingFSM::idle() {
 
 void OperatingFSM::controller1() { // SPRING CONTROLLER
   // Implement the behavior for CONTROLLER1 state
-    float dt = 0.01f; // 10 ms in seconds
+  unsigned long dt = getdt(); // Get the time difference since the last update
     float motorPosition = (pulses/(2000.0*51.0))*360.0; // Current position from encoder(); // Read the current position from the shaft
     float shaftPosition = (readShaftEncoderADC() - zeroShaftPosition) * MAGNETIC_ENCODER_RESOLUTION;
     // MAKE SURE U UPDATE THIS !!
@@ -120,7 +127,8 @@ void OperatingFSM::controller1() { // SPRING CONTROLLER
 
 void OperatingFSM::controller2() { // BACKDRIVABLE CONTROLLER
   // Implement the behavior for CONTROLLER2 state
-    float dt = 0.01f; // 10 ms in seconds
+
+    unsigned long dt = getdt(); // Get the time difference since the last update
     float motorPosition = (pulses/(2000.0*51.0))*360.0; // Current position from encoder(); // Read the current position from the shaft
     float shaftPosition = (readShaftEncoderADC() - zeroShaftPosition) * MAGNETIC_ENCODER_RESOLUTION;
     // MAKE SURE U UPDATE THIS !!
@@ -129,7 +137,7 @@ void OperatingFSM::controller2() { // BACKDRIVABLE CONTROLLER
 }
 
 void OperatingFSM::controller3() { // Position TrajectoryController
-    float dt = 0.01f; // 10 ms in seconds
+    unsigned long dt = getdt(); // Get the time difference since the last update
     float shaftPosition = (readShaftEncoderADC() - zeroShaftPosition) * MAGNETIC_ENCODER_RESOLUTION;
     // MAKE SURE U UPDATE THIS !!
     float power;
@@ -146,7 +154,7 @@ void OperatingFSM::controller3() { // Position TrajectoryController
 }
 
 void OperatingFSM::controller4() { // Torque Controller
-    float dt = 0.01f; // 10 ms in seconds
+    unsigned long dt = getdt(); // Get the time difference since the last update
     float motorPosition = (pulses/(2000.0*51.0))*360.0; // Current position from encoder(); // Read the current position from the shaft
     float shaftPosition = (readShaftEncoderADC() - zeroShaftPosition) * MAGNETIC_ENCODER_RESOLUTION;
     // MAKE SURE U UPDATE THIS !!
@@ -169,3 +177,10 @@ void OperatingFSM::controller7() {
   Serial.println("OperatingFSM: CONTROLLER7 state active");
 }
 
+unsigned long OperatingFSM::getdt() {
+  unsigned long currentTime = millis();
+  unsigned long dt = currentTime - lastUpdateTime;
+  lastUpdateTime = currentTime;
+  dt = dt / 1000.0; // Convert milliseconds to seconds
+  return dt;
+}

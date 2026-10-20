@@ -23,13 +23,12 @@ int readSwitchDIP(){ // 3 bit Switch
     return (bit2 << 2) | (bit1 << 1) | bit0;
 }
 
-void setLED(int pin) {
-    // Turn off all LEDs first
-    digitalWrite(IDLE_LED_PIN, LOW);
-    digitalWrite(OPERATING_LED_PIN, LOW);
-    digitalWrite(ERROR_LED_PIN, LOW);
-    // digitalWrite(HOMING_LED_PIN, LOW); (don't think we ever turn it off)
-
+void LEDOn(int pin) {
     // Turn on the specified LED
     digitalWrite(pin, HIGH);
+}
+
+void LEDOff(int pin) {
+    // Turn off the specified LED
+    digitalWrite(pin, LOW);
 }

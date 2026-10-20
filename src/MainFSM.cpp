@@ -4,6 +4,7 @@
 #include "OperatingFSM.h"
 #include "definitions.h"
 #include "Motor.h"
+#include "MotorEncoder.h"
 
 extern OperatingFSM operatingFSM; // Declare the external instance of OperatingFSM
 MainFSM::MainFSM() : currentState(HOMING), timeInState(0.0f) { }
@@ -14,14 +15,15 @@ void MainFSM::updateFSM(float motorPosition) {
     case IDLE:
       idle();
       // Transitions
-      if (outsideSafeRange() && (isHomed == true)) {
+      if (outsideSafeRange() && (homed == true)) {
         setState(ERROR);
-        setLED(ERROR_LED_PIN); // Turn on error LED
-      } else if (readEnableButton() && (isHomed == false)) {
+        LEDOn(ERROR_LED_PIN); // Turn on error LED
+      } else if (readEnableButton() && (homed == false)) {
         setState(HOMING);
-      } else if (readEnableButton() && (isHomed == true) && (readSwitchDIP() == 0b000)) {
+      } else if (readEnableButton() && (homed == true) && (readSwitchDIP() == 0b000)) {
         setState(OPERATING);
-        setLED(OPERATING_LED_PIN); // Turn on operating LED
+        LEDOff(IDLE_LED_PIN); // Turn off idle LED
+        LEDOn(OPERATING_LED_PIN); // Turn on operating LED
       }
       break;
     case OPERATING:
@@ -29,19 +31,23 @@ void MainFSM::updateFSM(float motorPosition) {
       // Transitions
       if (readEnableButton() == false) {
         setState(IDLE);
-        setLED(IDLE_LED_PIN); // Turn on idle LED
+        LEDOff(OPERATING_LED_PIN); // Turn off operating LED
+        LEDOff(HOMING_LED_PIN); // Turn off homing LED
+        LEDOn(IDLE_LED_PIN); // Turn on idle LED
+        homed = false; // Reset homing status when enable off
       } else if (outsideSafeRange()) {
         setState(ERROR);
-        setLED(ERROR_LED_PIN); // Turn on error LED
+        LEDOff(OPERATING_LED_PIN); // Turn off operating LED
+        LEDOn(ERROR_LED_PIN); // Turn on error LED
       }
       break;
 
     case HOMING:
       homing();
       // Transition back to IDLE after homing is complete
-      if (isHomed) {
+      if (homed) {
         setState(IDLE);
-        setLED(IDLE_LED_PIN); // Turn on idle LED
+        LEDOn(IDLE_LED_PIN); // Turn on idle LED
       }
       break;
 
@@ -50,7 +56,10 @@ void MainFSM::updateFSM(float motorPosition) {
       // Transition
       if (readEnableButton() == false) {
         setState(IDLE);
-        setLED(IDLE_LED_PIN); // Turn on idle LED
+        LEDOff(ERROR_LED_PIN); // Turn off error LED
+        LEDOff(HOMING_LED_PIN); // Turn off homing LED
+        LEDOn(IDLE_LED_PIN); // Turn on idle LED
+        homed = false; // Reset homing status when enable off
       }
       break;
   }
@@ -84,8 +93,7 @@ void MainFSM::homing() {
     home();
     // delay(10);
   }
-  isHomed = true; // Set to true to simulate homing completion
-  setLED(HOMING_LED_PIN); // Turn on homing LED
+  LEDOn(HOMING_LED_PIN); // Turn on homing LED
 }
 
 void MainFSM::error() {

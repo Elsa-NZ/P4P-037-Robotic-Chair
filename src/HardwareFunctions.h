@@ -6,6 +6,7 @@
 void setupHardwareState();
 bool readEnableButton();
 int readSwitchDIP(); // 3 bit Switch
-void setLED(int pin);
+void LEDOn(int pin);
+void LEDOff(int pin);
 
 #endif  // HARDWARE_FUNCTIONS_H

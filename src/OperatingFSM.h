@@ -13,6 +13,8 @@ class OperatingFSM {
     CONTROLLER6,
     CONTROLLER7
   };
+  unsigned long getdt();  // Function to calculate the time difference between updates
+  unsigned long lastUpdateTime;  // Variable to store the last update time for dt calculation
   State currentState;
   unsigned long switchStateTimer;
 

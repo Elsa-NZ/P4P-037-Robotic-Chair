@@ -68,7 +68,6 @@ int home() {
       homed = true;
       homingStarted = false;
       analogWrite(PWM_PIN, 0.1*255);
-      delay(1000); // Allow time for motor to settle
       pulses = 0; // Reset encoder pulses to zero at home position
       zeroShaftPosition = readShaftEncoderADC();; // Store the zero shaft position
       return 1; // Already at home position
