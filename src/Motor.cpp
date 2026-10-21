@@ -68,7 +68,9 @@ int home() {
       homed = true;
       homingStarted = false;
       analogWrite(PWM_PIN, 0.1*255);
+      cli(); // Disable interrupts to prevent further encoder updates
       pulses = 0; // Reset encoder pulses to zero at home position
+      sei(); // Re-enable interrupts
       zeroShaftPosition = readShaftEncoderADC();; // Store the zero shaft position
       return 1; // Already at home position
     }

@@ -163,8 +163,10 @@ void OperatingFSM::controller4() { // Torque Controller
 }
 
 void OperatingFSM::controller5() {
-  // Implement the behavior for CONTROLLER5 state
-  Serial.println("OperatingFSM: CONTROLLER5 state active");
+  unsigned long dt = getdt(); // Get the time difference since the last update
+  float shaftPosition = (readShaftEncoderADC() - zeroShaftPosition) * MAGNETIC_ENCODER_RESOLUTION;
+  float power = controller.updatePositionController(0.0, shaftPosition, dt, 0.0, 0.0); 
+  move(power);
 }
 
 void OperatingFSM::controller6() {
